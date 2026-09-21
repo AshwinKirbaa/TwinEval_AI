@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Upload &amp; Configuration - TwinEval AI</title>
+  <meta name="description" content="Educator dashboard for reviewing AI paper evaluations, overriding scores, and class analytics.">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/teacher.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="teacher-page">
+
+  <div class="app-layout">
+    <!-- Educator Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <div class="brand-name">TwinEval <span>Educator</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">TEACHER PORTAL</div>
+        <a href="teacher-dashboard.html" class="nav-link">
+          <i class="fa-solid fa-chart-pie nav-icon"></i>
+          <span>Overview</span>
+        </a>
+        <a href="teacher-upload.html" class="nav-link active">
+          <i class="fa-solid fa-file-circle-plus nav-icon"></i>
+          <span>Upload Paper &amp; Rubric</span>
+        </a>
+        <a href="teacher-review.html" class="nav-link">
+          <i class="fa-solid fa-glasses nav-icon"></i>
+          <span>Review Workspace</span>
+        </a>
+        <a href="teacher-analytics.html" class="nav-link">
+          <i class="fa-solid fa-chart-user nav-icon"></i>
+          <span>Class Analytics</span>
+        </a>
+
+        <div class="nav-section-title margin-top-md">SYSTEM</div>
+        <a href="profile.html" class="nav-link">
+          <i class="fa-solid fa-user-gear nav-icon"></i>
+          <span>Profile Settings</span>
+        </a>
+        <a href="settings.html" class="nav-link">
+          <i class="fa-solid fa-sliders nav-icon"></i>
+          <span>System Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">Question Paper &amp; Rubric Configuration</div>
+
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-secondary);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{teacher_name}}</div>
+              <div class="user-role">Educator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <div class="paper-builder">
+          <div>
+            <h1 class="page-title">Create Question Paper &amp; AI Answer Key</h1>
+            <p class="text-muted">Type your questions or upload a question paper -- the AI splits it into questions and writes a full answer key for each one automatically.</p>
+          </div>
+
+          <!-- Paper details -->
+          <div class="glass-card padding-lg">
+            <h3 class="card-title">Paper Details</h3>
+            <div class="field-grid field-grid-2">
+              <div class="form-group">
+                <label class="form-label" for="paperTitle">Title</label>
+                <input type="text" id="paperTitle" class="form-input" placeholder="e.g. Networking Midterm" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="paperSubject">Subject</label>
+                <input type="text" id="paperSubject" class="form-input" placeholder="e.g. Computer Networks" required>
+              </div>
+            </div>
+            <div class="field-grid field-grid-3">
+              <div class="form-group">
+                <label class="form-label" for="paperTopic">Topic (optional)</label>
+                <input type="text" id="paperTopic" class="form-input" placeholder="e.g. OSI Model">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="defaultMaxMarks">Default marks / question</label>
+                <input type="number" id="defaultMaxMarks" class="form-input" value="10" min="0.5" step="0.5">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="passPercentage">Pass percentage</label>
+                <input type="number" id="passPercentage" class="form-input" value="40" min="0" max="100" step="5">
+              </div>
+            </div>
+          </div>
+
+          <!-- Question input -->
+          <div class="glass-card padding-lg">
+            <h3 class="card-title">Question Input</h3>
+            <div class="mode-toggle" role="tablist">
+              <button type="button" class="mode-toggle-btn active" id="modeManualBtn" onclick="setQuestionInputMode('manual')">
+                <i class="fa-solid fa-keyboard"></i> Type Questions
+              </button>
+              <button type="button" class="mode-toggle-btn" id="modeUploadBtn" onclick="setQuestionInputMode('upload')">
+                <i class="fa-solid fa-file-arrow-up"></i> Upload Question Paper
+              </button>
+            </div>
+
+            <div id="manualInputPanel">
+              <textarea id="manualQuestionText" class="form-input" rows="6" placeholder="1. Explain the OSI model with a diagram.&#10;2. What are the advantages of database normalization?"></textarea>
+            </div>
+
+            <div id="uploadInputPanel" hidden>
+              <div class="upload-dropzone" id="qpDropzone">
+                <i class="fa-solid fa-file-invoice"></i>
+                <p class="text-muted" id="qpFileLabel">PDF, PNG, or JPG -- handwritten or typed, multi-page supported</p>
+                <input type="file" id="qpFileInput" accept=".pdf,.png,.jpg,.jpeg" hidden>
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('qpFileInput').click()">Browse File</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generate trigger -->
+          <div class="glass-card padding-lg generate-panel">
+            <div>
+              <h4 class="card-title">Generate AI Answer Key</h4>
+              <p class="text-muted">The AI splits your text into questions and writes a full answer key for each -- this can take a minute or two.</p>
+            </div>
+            <button type="button" class="btn btn-primary btn-md" id="generateBtn" onclick="generateQuestionPaper()">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
+            </button>
+          </div>
+
+          <!-- Live generation progress -->
+          <div class="glass-card padding-lg" id="generationProgressCard" hidden>
+            <div class="progress-header">
+              <span class="progress-stage-label" id="progressStageLabel">Starting...</span>
+              <span class="progress-count" id="progressCount"></span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            <p class="text-muted progress-message" id="progressMessage">
+              <i class="fa-solid fa-circle-notch fa-spin"></i> <span id="progressMessageText">Preparing...</span>
+            </p>
+          </div>
+
+          <!-- Generated preview -->
+          <div id="previewSection" hidden>
+            <div class="glass-card padding-lg" style="margin-bottom: 1rem;">
+              <h3 class="card-title">Generated Questions &amp; Answer Keys</h3>
+              <p class="text-muted">Review before publishing -- once published, students can submit answers against this paper.</p>
+            </div>
+            <div id="questionsPreview" style="display:flex; flex-direction:column; gap: 1rem;"></div>
+
+            <div class="glass-card padding-lg generate-panel" style="margin-top: 1rem;">
+              <div>
+                <h4 class="card-title">Ready to Publish?</h4>
+                <p class="text-muted">Publishing makes this paper visible to students for submission.</p>
+              </div>
+              <button type="button" class="btn btn-primary btn-md" id="publishBtn" onclick="publishGeneratedPaper()">
+                <i class="fa-solid fa-check"></i> Publish Paper
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/ai-local.js"></script>
+  <script src="js/teacher-upload.js"></script>
+  <script src="js/teacher.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{teacher_name}}');
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

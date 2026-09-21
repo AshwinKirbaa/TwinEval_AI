@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Feedback Analysis - TwinEval AI</title>
+  <meta name="description" content="In-depth question-wise feedback, rubric evaluation, and AI recommendations.">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="feedback-page">
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-brain"></i></div>
+        <div class="brand-name">TwinEval <span>AI</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">MAIN MENU</div>
+        <a href="student-dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie nav-icon"></i><span>Dashboard</span></a>
+        <a href="upload-answer.html" class="nav-link"><i class="fa-solid fa-cloud-arrow-up nav-icon"></i><span>Upload Answer</span></a>
+        <a href="results.html" class="nav-link"><i class="fa-solid fa-square-poll-vertical nav-icon"></i><span>Evaluation Results</span></a>
+        <a href="feedback.html" class="nav-link active"><i class="fa-solid fa-comment-dots nav-icon"></i><span>AI Feedback</span></a>
+        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line nav-icon"></i><span>Analytics</span></a>
+        <div class="nav-section-title margin-top-md">ACCOUNT</div>
+        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear nav-icon"></i><span>Profile Settings</span></a>
+        <a href="settings.html" class="nav-link"><i class="fa-solid fa-sliders nav-icon"></i><span>System Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div style="font-weight: 700; font-size: 1rem; color: var(--text-main);">Question-Wise AI Feedback</div>
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-card);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{student_name}}</div>
+              <div class="user-role">Student</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <div style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- Page Header Row -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h1 style="font-size: 1.65rem; font-weight: 800; margin-bottom: 0.35rem; letter-spacing: -0.02em;">Question Feedback Workspace</h1>
+              <p style="color: var(--text-muted); font-size: 0.9rem;">Detailed AI analysis, rubric compliance, and cognitive-level feedback per question.</p>
+            </div>
+            <a href="results.html" class="btn btn-outline btn-md">
+              <i class="fa-solid fa-arrow-left"></i> Back to Score Summary
+            </a>
+          </div>
+
+          <!-- Empty State — No Feedback Available -->
+          <div class="glass-card padding-lg">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+              <span class="badge" style="background: var(--bg-secondary); color: var(--text-muted);">
+                <i class="fa-solid fa-hourglass-half"></i> No Evaluation Found
+              </span>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0;">Subject and exam information will appear here once an answer sheet has been evaluated.</p>
+          </div>
+
+          <!-- Empty Question Tabs Area -->
+          <div class="glass-card padding-lg">
+            <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.5rem;">
+              <div style="font-size: 0.83rem; color: var(--text-muted); padding: 0.5rem 0.75rem; font-style: italic;">Question tabs will appear after evaluation is complete.</div>
+            </div>
+
+            <!-- Empty Feedback Pane -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+              <!-- Left: Feedback Empty -->
+              <div>
+              <div class="empty-state-container" style="min-height: 260px;">
+                <div class="empty-state-icon" style="font-size: 2.2rem; margin-bottom: 1rem;"><i class="fa-solid fa-comment-dots"></i></div>
+                <div class="empty-state-title">No question feedback yet.</div>
+                <div class="empty-state-text" style="font-size: 0.85rem; max-width: 360px; margin-bottom: 1.25rem;">Upload and submit your answer sheet for evaluation. The AI engine will generate question-wise strengths, deductions, and improvement recommendations.</div>
+                <a href="upload-answer.html" class="btn btn-primary btn-md">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Upload Answer Sheet
+                </a>
+              </div>
+            </div>
+
+            <!-- Right: Concept Coverage Empty -->
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <div class="glass-card padding-lg">
+                <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">Concept Coverage</h3>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                  <div style="font-size: 2rem; font-weight: 800; color: var(--text-light); line-height: 1;">--</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">Awaiting evaluation</div>
+                </div>
+                <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-muted);">Rubric Compliance</h4>
+                <div style="font-size: 0.82rem; color: var(--text-light); font-style: italic; text-align: center; padding: 1rem 0;">No rubric data yet.</div>
+              </div>
+              <div class="glass-card padding-lg">
+                <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">Bloom's Cognitive Level</h3>
+                <div style="text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
+                  <i class="fa-solid fa-layer-group" style="font-size: 1.25rem; color: var(--text-light); margin-bottom: 0.5rem; display: block;"></i>
+                  <span style="font-size: 0.83rem; color: var(--text-muted);">Not yet classified</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/results.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{student_name}}');
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

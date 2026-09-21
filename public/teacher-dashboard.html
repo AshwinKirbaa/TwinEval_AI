@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard - TwinEval AI</title>
+  <meta name="description" content="Educator dashboard for reviewing AI paper evaluations, overriding scores, and class analytics.">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/teacher.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="teacher-page">
+
+  <div class="app-layout">
+    <!-- Educator Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo" style="background: var(--accent);">
+          <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <div class="brand-name">TwinEval <span>Educator</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">TEACHER PORTAL</div>
+        <a href="teacher-dashboard.html" class="nav-link active">
+          <i class="fa-solid fa-chart-pie nav-icon"></i>
+          <span>Overview</span>
+        </a>
+        <a href="teacher-upload.html" class="nav-link">
+          <i class="fa-solid fa-file-circle-plus nav-icon"></i>
+          <span>Upload Paper & Rubric</span>
+        </a>
+        <a href="teacher-review.html" class="nav-link">
+          <i class="fa-solid fa-glasses nav-icon"></i>
+          <span>Review Workspace</span>
+        </a>
+        <a href="teacher-analytics.html" class="nav-link">
+          <i class="fa-solid fa-chart-user nav-icon"></i>
+          <span>Class Analytics</span>
+        </a>
+
+        <div class="nav-section-title margin-top-md">SYSTEM</div>
+        <a href="profile.html" class="nav-link">
+          <i class="fa-solid fa-user-gear nav-icon"></i>
+          <span>Profile Settings</span>
+        </a>
+        <a href="settings.html" class="nav-link">
+          <i class="fa-solid fa-sliders nav-icon"></i>
+          <span>System Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">Educator Control Center</div>
+
+        <div class="header-search"><i class="fa-solid fa-magnifying-glass search-icon"></i><input id="teacherSubmissionSearchInput" class="search-input" type="search" placeholder="Search by student, roll no, or subject"></div>
+
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-secondary);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{teacher_name}}</div>
+              <div class="user-role">Educator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+        
+        <!-- Educator Welcome Card -->
+        <div class="glass-card padding-lg margin-bottom-lg" style="background: var(--gradient-glass); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span class="badge badge-accent margin-bottom-xs"><i class="fa-solid fa-chalkboard"></i> Active Session</span>
+            <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.35rem;">Welcome, <span class="user-name-display">{{teacher_name}}</span></h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;" id="teacherDashboardSummary">Loading your real evaluation activity...</p>
+          </div>
+
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="teacher-upload.html" class="btn btn-primary btn-md">
+              <i class="fa-solid fa-file-circle-plus"></i> Upload Paper &amp; Rubric
+            </a>
+            <a href="teacher-review.html" class="btn btn-secondary btn-md" id="startReviewBtn">
+              <i class="fa-solid fa-glasses"></i> Start Reviewing
+            </a>
+          </div>
+        </div>
+
+        <!-- 4 Stat Summary Cards -->
+        <div class="stats-grid">
+          <div class="glass-card stat-card">
+            <div class="stat-icon warning"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div>
+              <div class="stat-value" id="pendingReviewsValue">0</div>
+              <div class="stat-label">Pending Reviews</div>
+              <div class="stat-trend text-warning"><i class="fa-solid fa-clock"></i> Requires your decision</div>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card">
+            <div class="stat-icon success"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+              <div class="stat-value" id="approvedEvaluationsValue">0</div>
+              <div class="stat-label">Approved Evaluations</div>
+              <div class="stat-trend text-success"><i class="fa-solid fa-arrow-up"></i> +12 today</div>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card">
+            <div class="stat-icon primary"><i class="fa-solid fa-chart-pie"></i></div>
+            <div>
+              <div class="stat-value" id="classMeanValue">--</div>
+              <div class="stat-label">Class Mean Score</div>
+              <div class="stat-trend text-primary" id="classMeanContext">Based on evaluated submissions</div>
+            </div>
+          </div>
+
+          <div class="glass-card stat-card">
+            <div class="stat-icon accent"><i class="fa-solid fa-sliders"></i></div>
+            <div>
+              <div class="stat-value" id="overrideRateValue">--</div>
+              <div class="stat-label">Score Override Rate</div>
+              <div class="stat-trend text-muted" id="overrideRateContext">Teacher overrides</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Split Grid: Class Performance Chart & Pending Answer Sheets -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+          
+          <!-- Submissions Table -->
+          <div class="glass-card padding-lg">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 700;">Student Answer Sheet Submissions</h3>
+              <a href="teacher-review.html" class="btn btn-sm btn-ghost">Workspace <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.85rem;">
+                    <th style="padding: 0.75rem 1rem;">STUDENT & ROLL</th>
+                    <th style="padding: 0.75rem 1rem;">SUBJECT</th>
+                    <th style="padding: 0.75rem 1rem;">AI SCORE</th>
+                    <th style="padding: 0.75rem 1rem;">TEACHER STATUS</th>
+                    <th style="padding: 0.75rem 1rem; text-align: right;">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody id="teacherRecentSubmissionsBody">
+                  <tr>
+                    <td colspan="5" style="padding:1.25rem; text-align:center; color:var(--text-muted);">Loading real submissions...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Class Performance Chart -->
+          <div class="glass-card padding-lg">
+            <div style="margin-bottom: 1.25rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 700;">Section Mean Scores</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">Average score by your question paper</p>
+            </div>
+            <div id="classPerformanceChart"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/teacher.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{teacher_name}}');
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

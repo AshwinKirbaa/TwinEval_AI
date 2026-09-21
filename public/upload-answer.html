@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Answer - TwinEval AI</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/upload.css"><link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="upload-page eduka-page">
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="brand-logo"><i class="fa-solid fa-brain"></i></div><div class="brand-name">TwinEval <span>AI</span></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">WORKSPACE</div>
+      <a href="student-dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie nav-icon"></i><span>Dashboard</span></a>
+      <a href="upload-answer.html" class="nav-link active"><i class="fa-solid fa-cloud-arrow-up nav-icon"></i><span>Upload Answer</span></a>
+      <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line nav-icon"></i><span>Analytics</span></a>
+      <div class="nav-section-title margin-top-md">ACCOUNT</div>
+      <a href="profile.html" class="nav-link"><i class="fa-solid fa-user nav-icon"></i><span>Profile</span></a>
+      <a href="settings.html" class="nav-link"><i class="fa-solid fa-sliders nav-icon"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-footer"><a href="#" class="logout-trigger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span>Sign Out</span></a></div>
+  </aside>
+  <main class="main-content">
+    <header class="top-header eduka-header">
+      <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost"><i class="fa-solid fa-bars"></i></button>
+      <div class="header-search"><i class="fa-solid fa-magnifying-glass search-icon"></i><input id="paperSearchInput" class="search-input" type="search" placeholder="Search for evaluation, subject, and more"></div>
+      <div class="header-actions">
+        <div class="dropdown-wrapper notification-wrap"><button type="button" class="header-icon-btn" id="notificationBtn" aria-label="Notifications"><i class="fa-regular fa-bell"></i></button><div class="dropdown-menu notification-menu" id="notificationDropdownMenu" hidden><div class="dropdown-heading">Notifications</div><div class="notification-empty"><span><i class="fa-regular fa-bell-slash"></i></span><strong>You're all caught up</strong><small>No new evaluation updates right now.</small></div></div></div>
+        <div class="dropdown-wrapper account-wrap"><button type="button" class="user-profile-pill" aria-label="Open account menu"><span class="user-avatar"><i class="fa-solid fa-user"></i></span><span class="user-info"><span class="user-name user-name-display">Student</span><span class="user-role">STUDENT</span></span><i class="fa-solid fa-chevron-down account-chevron"></i></button><div class="dropdown-menu account-dropdown-menu" hidden><div class="account-menu-head"><span class="user-avatar large"><i class="fa-solid fa-user"></i></span><div><strong class="user-name-display">Student</strong><small>Student account</small></div></div><a class="dropdown-item" href="profile.html"><i class="fa-solid fa-user"></i> Profile</a><a class="dropdown-item" href="settings.html"><i class="fa-solid fa-sliders"></i> Settings</a><div class="dropdown-divider"></div><button type="button" class="dropdown-item dropdown-item-btn js-dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button></div></div>
+      </div>
+    </header>
+    <div class="content-body eduka-content upload-content">
+      <div class="page-heading-row"><div><div class="eyebrow">ANSWER SHEET</div><h1>Upload an answer sheet</h1><p>Choose the question paper, upload your PDF or image, then let TwinEval evaluate it.</p></div></div>
+      <div class="upload-layout">
+        <div class="upload-main-column">
+          <article class="eduka-card paper-picker"><div class="step-number">01</div><div class="step-copy"><h2>Select question paper</h2><p>Choose the published paper you are answering.</p></div><select id="paperSelect" class="form-input"><option value="">Loading available papers...</option></select></article>
+          <article class="eduka-card upload-card"><div class="step-number">02</div><div class="step-copy"><h2>Add your answer sheet</h2><p>PDF, PNG or JPG · maximum 25 MB</p></div><div class="dropzone-container eduka-dropzone" id="uploadDropzone"><div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><h3 class="dropzone-title">Drop your answer sheet here</h3><p class="dropzone-subtitle">or click to browse from your computer</p><span class="upload-format"><i class="fa-regular fa-file-lines"></i> PDF / PNG / JPG</span><input type="file" id="answerFileInput" accept=".pdf,.png,.jpg,.jpeg" hidden></div></article>
+          <div class="selected-file-card eduka-file-card" id="selectedFileCard" style="display:none"><div class="file-info-group"><div class="file-icon-badge"><i class="fa-solid fa-file-pdf"></i></div><div><div class="file-name" id="selectedFileName">—</div><div class="file-meta" id="selectedFileSize">—</div></div></div><div class="file-actions"><span class="badge badge-success"><i class="fa-solid fa-check"></i> Ready</span><button type="button" class="btn btn-icon btn-ghost" id="removeFileBtn" title="Remove file"><i class="fa-solid fa-trash-can"></i></button></div></div>
+          <article class="eduka-card evaluate-card"><div><div class="eyebrow">03 · AI EVALUATION</div><h2>Ready when you are</h2><p>TwinEval will read the sheet, match answers to questions, evaluate them against the paper's answer key and save the results.</p></div><button type="button" class="btn btn-primary" id="startEvaluationBtn" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Start evaluation</button></article>
+          <article class="eduka-card progress-card-upload" id="evaluationProgressCard" hidden><div class="progress-header"><strong id="progressStageLabel">Queued</strong><span id="progressCount"></span></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><p class="progress-message" id="progressMessage"><i class="fa-solid fa-circle-notch fa-spin"></i> <span id="progressMessageText">Preparing...</span></p></article>
+        </div>
+        <aside class="upload-side"><div class="eduka-card checklist-card"><h2>Evaluation flow</h2><div class="flow-step"><span>01</span><div><strong>OCR</strong><small>Read your pages</small></div></div><div class="flow-step"><span>02</span><div><strong>Match</strong><small>Find each answer</small></div></div><div class="flow-step"><span>03</span><div><strong>Evaluate</strong><small>Score against rubric</small></div></div><div class="flow-step"><span>04</span><div><strong>Results</strong><small>View feedback & marks</small></div></div></div><div class="tip-card"><i class="fa-solid fa-lightbulb"></i><div><strong>Tip</strong><p>Use a clear scan or well-lit photo. Keep question numbers visible so answer matching is more reliable.</p></div></div></aside>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="js/script.js"></script>
+  <script src="js/ai-local.js"></script><script src="js/upload.js"></script><script src="js/redesign.js"></script>
+</body>
+</html>

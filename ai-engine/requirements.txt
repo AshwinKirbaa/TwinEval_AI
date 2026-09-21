@@ -1,0 +1,16 @@
+streamlit
+ollama
+pillow
+pymupdf
+python-dotenv
+google-genai
+google-generativeai
+python-docx
+opencv-python
+numpy
+pandas
+sentence-transformers
+scikit-learn
+reportlab
+flask
+flask-cors

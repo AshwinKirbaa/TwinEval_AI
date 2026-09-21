@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Analytics - TwinEval AI</title>
+  <meta name="description" content="Educator dashboard for reviewing AI paper evaluations, overriding scores, and class analytics.">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/teacher.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="teacher-page">
+
+  <div class="app-layout">
+    <!-- Educator Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <div class="brand-name">TwinEval <span>Educator</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">TEACHER PORTAL</div>
+        <a href="teacher-dashboard.html" class="nav-link">
+          <i class="fa-solid fa-chart-pie nav-icon"></i>
+          <span>Overview</span>
+        </a>
+        <a href="teacher-upload.html" class="nav-link">
+          <i class="fa-solid fa-file-circle-plus nav-icon"></i>
+          <span>Upload Paper &amp; Rubric</span>
+        </a>
+        <a href="teacher-review.html" class="nav-link">
+          <i class="fa-solid fa-glasses nav-icon"></i>
+          <span>Review Workspace</span>
+        </a>
+        <a href="teacher-analytics.html" class="nav-link active">
+          <i class="fa-solid fa-chart-user nav-icon"></i>
+          <span>Class Analytics</span>
+        </a>
+
+        <div class="nav-section-title margin-top-md">SYSTEM</div>
+        <a href="profile.html" class="nav-link">
+          <i class="fa-solid fa-user-gear nav-icon"></i>
+          <span>Profile Settings</span>
+        </a>
+        <a href="settings.html" class="nav-link">
+          <i class="fa-solid fa-sliders nav-icon"></i>
+          <span>System Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">Class-Wide Analytics &amp; Grade Distribution</div>
+
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-secondary);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{teacher_name}}</div>
+              <div class="user-role">Educator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+        <div style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h1 style="font-size: 1.65rem; font-weight: 800; margin-bottom: 0.35rem; letter-spacing: -0.02em;">Class Performance Analytics</h1>
+              <p style="color: var(--text-muted); font-size: 0.9rem;">Class-wide metrics, hardest questions, and cognitive Bloom level averages.</p>
+            </div>
+            <button type="button" class="btn btn-primary btn-md" onclick="TwinEvalApp.showToast('Exporting Analytics', 'Downloading class performance report CSV...', 'info');">
+              <i class="fa-solid fa-file-export"></i> Export Report (CSV)
+            </button>
+          </div>
+
+          <!-- 4 Stat Summary Cards -->
+          <div class="stats-grid">
+            <div class="glass-card stat-card">
+              <div class="stat-icon primary"><i class="fa-solid fa-graduation-cap"></i></div>
+              <div>
+                <div class="stat-value" id="analyticsMeanValue">--</div>
+                <div class="stat-label">Class Mean Score</div>
+                <div class="stat-trend text-primary">Based on evaluated submissions</div>
+              </div>
+            </div>
+
+            <div class="glass-card stat-card">
+              <div class="stat-icon success"><i class="fa-solid fa-circle-check"></i></div>
+              <div>
+                <div class="stat-value" id="analyticsConsensusValue">--</div>
+                <div class="stat-label">AI Consensus Rate</div>
+                <div class="stat-trend text-success">Evaluations not teacher-overridden</div>
+              </div>
+            </div>
+
+            <div class="glass-card stat-card">
+              <div class="stat-icon success"><i class="fa-solid fa-award"></i></div>
+              <div>
+                <div class="stat-value" id="analyticsTopCountValue">0</div>
+                <div class="stat-label">Grade O (Outstanding)</div>
+                <div class="stat-trend text-success">Evaluated submissions &gt;= 90%</div>
+              </div>
+            </div>
+
+            <div class="glass-card stat-card">
+              <div class="stat-icon warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div>
+                <div class="stat-value" id="analyticsHardestValue">--</div>
+                <div class="stat-label">Hardest Question</div>
+                <div class="stat-trend text-warning" id="analyticsHardestContext">No evaluated questions yet</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row: Grade Histogram & Class Radar -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+            <div class="glass-card padding-lg" style="flex: 2; min-width: 300px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                  <h3 style="font-size: 1.15rem; font-weight: 700;">Grade Distribution Histogram</h3>
+                  <p style="font-size: 0.85rem; color: var(--text-muted);">Student count grouped by letter grade scale</p>
+                </div>
+                <span class="badge badge-primary" id="analyticsPeriodBadge">Live Data</span>
+              </div>
+              <div id="gradeDistributionChart"></div>
+            </div>
+
+            <div class="glass-card padding-lg" style="flex: 1; min-width: 250px;">
+              <div style="text-align: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 700;">Class Cognitive Radar</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted);">Bloom's Skill Averages</p>
+              </div>
+              <div id="classBloomRadar"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/teacher.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{teacher_name}}');
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+{
+	"info": {
+		"_postman_id": "twineval-ai-backend-collection",
+		"name": "TwinEval AI Backend API Collection",
+		"description": "Production Postman collection for TwinEval AI Student Evaluation & Analytics Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Teacher Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"sarah.jenkins@twineval.edu\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Prof. Michael Scott\",\n  \"email\": \"michael.scott@twineval.edu\",\n  \"password\": \"password123\",\n  \"role\": \"teacher\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard Overview",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/dashboard",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"dashboard"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Students",
+			"item": [
+				{
+					"name": "Get All Students (Paginated & Filtered)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/students?department=Computer Science&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"students"
+							],
+							"query": [
+								{
+									"key": "department",
+									"value": "Computer Science"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Student by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/students/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"students",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Student",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Rahul Verma\",\n  \"email\": \"rahul.verma@student.edu\",\n  \"department\": \"Computer Science\",\n  \"semester\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/students",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"students"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Student Full Report",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/students/1/report",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"students",
+								"1",
+								"report"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Student Leaderboard",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/students/analytics/leaderboard?limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"students",
+								"analytics",
+								"leaderboard"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Student Ranking",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/students/1/ranking",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"students",
+								"1",
+								"ranking"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Student Trend",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/students/1/trend",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"students",
+								"1",
+								"trend"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "AI Services",
+			"item": [
+				{
+					"name": "AI Evaluate Performance",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"marks\": 88.5,\n  \"attendance\": 92.0,\n  \"communication\": 85.0,\n  \"problem_solving\": 90.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/evaluate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai",
+								"evaluate"
+							]
+						}
+					}
+				},
+				{
+					"name": "AI Generate Learning Plan",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"student_id\": 1,\n  \"subject\": \"Computer Science\",\n  \"weak_topics\": [\"Graph Theory\", \"Dynamic Programming\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ai/learning-plan",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ai",
+								"learning-plan"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Teacher Analytics",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"analytics"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Department Analytics",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/department",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"analytics",
+								"department"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Performance Metrics",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/performance",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"analytics",
+								"performance"
+							]
+						}
+					}
+				},
+				{
+					"name": "Department Comparison",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/department-comparison",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"analytics",
+								"department-comparison"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5002"
+		},
+		{
+			"key": "authToken",
+			"value": ""
+		}
+	]
+}

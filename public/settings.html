@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Settings - TwinEval AI</title>
+  <meta name="description" content="TwinEval AI platform configuration, notifications, AI engine settings, and appearance preferences.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/settings.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="settings-page">
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-brain"></i></div>
+        <div class="brand-name">TwinEval <span>AI</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">MAIN MENU</div>
+        <a href="student-dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie nav-icon"></i><span>Dashboard</span></a>
+        <a href="upload-answer.html" class="nav-link"><i class="fa-solid fa-cloud-arrow-up nav-icon"></i><span>Upload Answer</span></a>
+        <a href="feedback.html" class="nav-link"><i class="fa-solid fa-comment-dots nav-icon"></i><span>AI Feedback</span></a>
+        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line nav-icon"></i><span>Analytics</span></a>
+        <div class="nav-section-title margin-top-md">ACCOUNT</div>
+        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear nav-icon"></i><span>Profile Settings</span></a>
+        <a href="settings.html" class="nav-link active"><i class="fa-solid fa-sliders nav-icon"></i><span>System Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Open navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted);">Platform &amp; Engine Settings</div>
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-secondary);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{student_name}}</div>
+              <div class="user-role">Student</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+
+        <!-- Page Title -->
+        <div style="margin-bottom: 2rem;">
+          <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.4rem;">System &amp; Workspace Settings</h1>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Configure application theme, AI engine parameters, notifications, and security protocols.</p>
+        </div>
+
+        <!-- Unified settings workspace: all preferences are visible together. -->
+        <div class="settings-section active" id="tab-general">
+          <div class="glass-card" style="padding: 2rem; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">Interface Theme &amp; Aesthetics</h3>
+
+            <!-- Interface Animations -->
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-title">Interface Animations</div>
+                <div class="setting-desc">Enable smooth card hover effects and neural particle canvas</div>
+              </div>
+              <div class="setting-control">
+                <input type="checkbox" id="animationsToggle" checked style="width:20px;height:20px;accent-color:var(--primary);cursor:pointer;">
+              </div>
+            </div>
+
+            <!-- System Language -->
+            <div class="setting-row" style="border-bottom: none;">
+              <div class="setting-info">
+                <div class="setting-title">System Language</div>
+                <div class="setting-desc">Select primary evaluation language</div>
+              </div>
+              <div class="setting-control">
+                <select id="languageSelect" class="form-input" style="width:180px;appearance:auto;height:40px;font-size:0.875rem;">
+                  <option value="en">English (US)</option>
+                  <option value="en-gb">English (UK)</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                  <option value="hi">Hindi</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Notifications -->
+        <div class="settings-section" id="tab-notifications">
+          <div class="glass-card" style="padding: 2rem; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">Email &amp; In-App Alerts</h3>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-title">Evaluation Completion Alerts</div>
+                <div class="setting-desc">Get notified immediately when answer sheet processing completes</div>
+              </div>
+              <div class="setting-control">
+                <input type="checkbox" id="evalAlerts" checked style="width:20px;height:20px;accent-color:var(--primary);cursor:pointer;">
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-title">Teacher Review Notifications</div>
+                <div class="setting-desc">Receive alerts when professor approves or overrides marks</div>
+              </div>
+              <div class="setting-control">
+                <input type="checkbox" id="teacherAlerts" checked style="width:20px;height:20px;accent-color:var(--primary);cursor:pointer;">
+              </div>
+            </div>
+
+            <div class="setting-row" style="border-bottom: none;">
+              <div class="setting-info">
+                <div class="setting-title">Weekly Performance Summary</div>
+                <div class="setting-desc">Receive a weekly email digest of your progress and analytics</div>
+              </div>
+              <div class="setting-control">
+                <input type="checkbox" id="weeklyDigest" style="width:20px;height:20px;accent-color:var(--primary);cursor:pointer;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: AI Model Configuration -->
+        <div class="settings-section" id="tab-ai-engine">
+          <div class="glass-card" style="padding: 2rem; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">TwinEval AI Engine Status</h3>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-title">Vision OCR Engine Model</div>
+                <div class="setting-desc">Neural Transformer — Local Execution Pipeline</div>
+              </div>
+              <div class="setting-control">
+                <span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Operational</span>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-title">Semantic Graph Matcher Threshold</div>
+                <div class="setting-desc">Minimum confidence score for automatic grading</div>
+              </div>
+              <div class="setting-control">
+                <select id="thresholdSelect" class="form-input" style="width:160px;appearance:auto;height:40px;font-size:0.875rem;">
+                  <option value="95">95% — Strict</option>
+                  <option value="90" selected>90% — Balanced</option>
+                  <option value="85">85% — Lenient</option>
+                  <option value="80">80% — Permissive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row" style="border-bottom: none;">
+              <div class="setting-info">
+                <div class="setting-title">Bloom's Taxonomy Classification</div>
+                <div class="setting-desc">Automatically classify answers by cognitive depth level</div>
+              </div>
+              <div class="setting-control">
+                <input type="checkbox" id="bloomToggle" checked style="width:20px;height:20px;accent-color:var(--primary);cursor:pointer;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: About & License -->
+        <div class="settings-section" id="tab-about">
+          <div class="glass-card" style="padding: 3rem 2rem; margin-bottom: 1.5rem; text-align: center;">
+            <div style="width:68px;height:68px;border-radius:18px;background:var(--gradient-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 1.5rem;box-shadow:var(--shadow-glow);">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <h2 style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.35rem;">TwinEval AI Platform</h2>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.75rem;">Commercial Series-A SaaS Architecture — AI Answer Evaluation Engine</p>
+            <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+              <span class="badge badge-primary"><i class="fa-solid fa-shield"></i> National AI Hackathon Edition</span>
+              <span class="badge badge-accent"><i class="fa-solid fa-bolt"></i> 100% Client-Side Pure Stack</span>
+              <span class="badge badge-success"><i class="fa-solid fa-leaf"></i> Vanilla HTML · CSS · JS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Footer -->
+        <div class="glass-card" style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="font-weight: 700; font-size: 0.95rem;">Save Configuration Changes</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Settings are persisted to local storage.</div>
+          </div>
+          <button type="button" class="btn btn-primary btn-md" id="settingsSaveBtn">
+            <i class="fa-solid fa-floppy-disk"></i> Save Preferences
+          </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/settings.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{student_name}}');
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

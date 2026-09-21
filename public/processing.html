@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Processing Engine - TwinEval AI</title>
+  <meta name="description" content="Real-time AI pipeline executing OCR, Semantic Matching, Rubric Evaluation, and Bloom classification.">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="processing-page">
+
+  <div class="canvas-background">
+    <canvas id="particleCanvas"></canvas>
+  </div>
+
+  <div style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; position: relative; z-index: 10;">
+    
+    <!-- Top Branding -->
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
+      <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--gradient-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: var(--shadow-glow);">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+      <div style="font-size: 1.4rem; font-weight: 800;">TwinEval <span style="color: var(--accent);">AI Engine</span></div>
+    </div>
+
+    <!-- Processing Card Container -->
+    <div class="glass-card padding-xl" style="max-width: 840px; width: 100%; border-radius: var(--radius-xl);">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <span class="badge badge-accent margin-bottom-xs" id="processingStatusBadge">
+          <i class="fa-solid fa-sync fa-spin"></i> Executing AI Neural Pipeline
+        </span>
+        <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.5rem;" id="currentStepTitle">Reading PDF &amp; Formatting Document...</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;" id="currentStepSubtitle">Analyzing page structures, diagrams, and handwriting strokes.</p>
+      </div>
+
+      <!-- Main Progress Bar & Counter -->
+      <div style="margin-bottom: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 600;">
+          <span style="color: var(--primary);"><i class="fa-solid fa-microchip"></i> Neural Pipeline Progress</span>
+          <span id="progressPercentageText" style="font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent);">0%</span>
+        </div>
+        <div style="height: 12px; background: var(--bg-secondary); border-radius: var(--radius-full); overflow: hidden; position: relative;">
+          <div id="mainProgressBar" style="width: 0%; height: 100%; background: var(--gradient-primary); border-radius: var(--radius-full); transition: width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Process Steps Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem;" id="stepsTimelineGrid">
+        <div class="glass-card padding-sm step-card active" id="step-1" style="display: flex; align-items: center; gap: 0.75rem; border-left: 4px solid var(--primary);">
+          <div class="step-icon" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+            <i class="fa-solid fa-file-pdf"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600; font-size: 0.85rem;">1. Document OCR</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);" class="step-state">Processing...</div>
+          </div>
+        </div>
+
+        <div class="glass-card padding-sm step-card" id="step-2" style="display: flex; align-items: center; gap: 0.75rem; border-left: 4px solid var(--border-subtle);">
+          <div class="step-icon" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-secondary); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+            <i class="fa-solid fa-diagram-project"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600; font-size: 0.85rem;">2. Semantic Graph</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);" class="step-state">Queued</div>
+          </div>
+        </div>
+
+        <div class="glass-card padding-sm step-card" id="step-3" style="display: flex; align-items: center; gap: 0.75rem; border-left: 4px solid var(--border-subtle);">
+          <div class="step-icon" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-secondary); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600; font-size: 0.85rem;">3. Rubric Evaluation</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);" class="step-state">Queued</div>
+          </div>
+        </div>
+
+        <div class="glass-card padding-sm step-card" id="step-4" style="display: flex; align-items: center; gap: 0.75rem; border-left: 4px solid var(--border-subtle);">
+          <div class="step-icon" style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-secondary); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600; font-size: 0.85rem;">4. Bloom's Taxonomy</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);" class="step-state">Queued</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Log Terminal Feed -->
+      <div style="background: #0f172a; border-radius: var(--radius-md); padding: 1.25rem; font-family: var(--font-mono); font-size: 0.8rem; color: #38bdf8; height: 150px; overflow-y: auto;" id="liveLogTerminal">
+        <div>[0.00s] INIT: Neural Engine pipeline initialized.</div>
+      </div>
+
+      <!-- Action Footer (Appears on finish) -->
+      <div style="margin-top: 1.5rem; text-align: center; display: none;" id="completedActions">
+        <a href="results.html" class="btn btn-primary btn-md animate-fade-in">
+          <span>View Evaluation Results</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    // This page is kept as a compatibility screen for older links.  It no
+    // longer invents OCR confidence, concept counts, timings, or completion
+    // messages.  When a real evaluation job id is supplied, every displayed
+    // state comes directly from the AI backend.
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get('job_id');
+    const submissionId = params.get('submission_id');
+    const progressBar = document.getElementById('mainProgressBar');
+    const percentageText = document.getElementById('progressPercentageText');
+    const stepTitle = document.getElementById('currentStepTitle');
+    const stepSub = document.getElementById('currentStepSubtitle');
+    const terminal = document.getElementById('liveLogTerminal');
+    const badge = document.getElementById('processingStatusBadge');
+    const actions = document.getElementById('completedActions');
+
+    const stageText = {
+      queued: 'Queued',
+      extracting_text: 'Reading Answer Sheet (OCR)',
+      splitting_answers: 'Matching Answers to Questions',
+      evaluating: 'Evaluating Answers',
+      complete: 'Evaluation Complete'
+    };
+
+    function showMessage(title, subtitle, percent, state) {
+      stepTitle.textContent = title;
+      stepSub.textContent = subtitle || '';
+      progressBar.style.width = `${percent}%`;
+      percentageText.textContent = `${percent}%`;
+      badge.textContent = state || 'Processing';
+    }
+
+    function addLog(text) {
+      const line = document.createElement('div');
+      line.textContent = text;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    async function pollRealJob() {
+      try {
+        const res = await TwinEvalApp.apiFetch(`/submissions/generate-job/${encodeURIComponent(jobId)}`);
+        const job = res.data || {};
+        const percent = job.total > 0 ? Math.round((job.current / job.total) * 100) : (job.stage === 'complete' ? 100 : 8);
+        showMessage(stageText[job.stage] || 'Processing', job.message || 'Working...', percent, job.error ? 'Evaluation Failed' : (job.done ? 'Complete' : 'Processing'));
+        addLog(`[LIVE] ${job.message || stageText[job.stage] || 'Processing'}`);
+
+        if (job.error) {
+          badge.className = 'badge badge-danger margin-bottom-xs';
+          showMessage('Evaluation Failed', job.error, percent, 'Evaluation Failed');
+          return;
+        }
+
+        if (job.done) {
+          badge.className = 'badge badge-success margin-bottom-xs';
+          actions.style.display = 'block';
+          const resultLink = actions.querySelector('a');
+          if (resultLink && submissionId) resultLink.href = `results.html?submission_id=${encodeURIComponent(submissionId)}`;
+          if (submissionId) {
+            setTimeout(() => { window.location.href = `results.html?submission_id=${encodeURIComponent(submissionId)}`; }, 800);
+          }
+          return;
+        }
+
+        setTimeout(pollRealJob, 1000);
+      } catch (err) {
+        addLog(`[RETRY] ${err.message || 'Temporary connection error.'}`);
+        setTimeout(pollRealJob, 1500);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!jobId) {
+        showMessage('No active evaluation job', 'Start an evaluation from Upload Answer Sheet to see live processing here.', 0, 'Waiting');
+        terminal.innerHTML = '';
+        addLog('[INFO] No real evaluation job id was supplied.');
+        actions.style.display = 'block';
+        return;
+      }
+      terminal.innerHTML = '';
+      addLog('[LIVE] Connected to the evaluation job.');
+      pollRealJob();
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

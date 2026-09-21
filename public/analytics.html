@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Analytics - TwinEval AI</title>
+  <meta name="description" content="Comprehensive AI performance analytics, Bloom taxonomy radar, and skill insights.">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/student.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="student-page">
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-brain"></i></div>
+        <div class="brand-name">TwinEval <span>AI</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">MAIN MENU</div>
+        <a href="student-dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie nav-icon"></i><span>Dashboard</span></a>
+        <a href="upload-answer.html" class="nav-link"><i class="fa-solid fa-cloud-arrow-up nav-icon"></i><span>Upload Answer</span></a>
+        <a href="results.html" class="nav-link"><i class="fa-solid fa-square-poll-vertical nav-icon"></i><span>Evaluation Results</span></a>
+        <a href="feedback.html" class="nav-link"><i class="fa-solid fa-comment-dots nav-icon"></i><span>AI Feedback</span></a>
+        <a href="analytics.html" class="nav-link active"><i class="fa-solid fa-chart-line nav-icon"></i><span>Analytics</span></a>
+        <div class="nav-section-title margin-top-md">ACCOUNT</div>
+        <a href="profile.html" class="nav-link"><i class="fa-solid fa-user-gear nav-icon"></i><span>Profile Settings</span></a>
+        <a href="settings.html" class="nav-link"><i class="fa-solid fa-sliders nav-icon"></i><span>System Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div style="font-weight: 700; font-size: 1rem; color: var(--text-main);">AI Performance Analytics</div>
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-card);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{student_name}}</div>
+              <div class="user-role">Student</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+
+        <!-- Page Title Row -->
+        <div class="margin-bottom-lg" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h1 style="font-size: 1.65rem; font-weight: 800; margin-bottom: 0.35rem; letter-spacing: -0.02em;">Skill &amp; Mastery Analytics</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Real-time AI insights across exam performances, cognitive depth, and concept mastery.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-md" id="exportAnalyticsBtn">
+            <i class="fa-solid fa-file-export"></i> Export Report (CSV)
+          </button>
+        </div>
+
+        <!-- 4 Metric Cards — Empty State -->
+        <div class="stats-grid">
+          <div class="glass-card stat-card">
+            <div class="stat-icon primary"><i class="fa-solid fa-chart-simple"></i></div>
+            <div>
+              <div class="stat-value">--</div>
+              <div class="stat-label">Cumulative GPA</div>
+              <div class="stat-trend text-muted">No data yet</div>
+            </div>
+          </div>
+          <div class="glass-card stat-card">
+            <div class="stat-icon accent"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+              <div class="stat-value">--</div>
+              <div class="stat-label">Bloom Mastery</div>
+              <div class="stat-trend text-muted">Awaiting evaluation</div>
+            </div>
+          </div>
+          <div class="glass-card stat-card">
+            <div class="stat-icon success"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+              <div class="stat-value">--</div>
+              <div class="stat-label">Rubric Compliance</div>
+              <div class="stat-trend text-muted">No submissions</div>
+            </div>
+          </div>
+          <div class="glass-card stat-card">
+            <div class="stat-icon warning"><i class="fa-solid fa-brain"></i></div>
+            <div>
+              <div class="stat-value">--</div>
+              <div class="stat-label">AI Evaluator Accuracy</div>
+              <div class="stat-trend text-muted">No overrides</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+          <!-- Score Trend Chart Empty -->
+          <div class="glass-card padding-lg">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+              <div>
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Score Trend Over Semester</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted);">Monthly score progression across all evaluated answer sheets</p>
+              </div>
+              <span class="badge badge-primary">Current Term</span>
+            </div>
+            <div class="empty-state-container" style="min-height: 200px;">
+              <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-chart-line"></i></div>
+              <div class="empty-state-title" style="font-size: 1rem;">No trend data available.</div>
+              <div class="empty-state-text" style="font-size: 0.83rem; max-width: 320px; margin: 0;">Your performance trend chart will populate after your first evaluation.</div>
+            </div>
+          </div>
+
+          <!-- Bloom Radar Empty -->
+          <div class="glass-card padding-lg">
+            <div style="text-align: center; margin-bottom: 1.25rem;">
+              <h3 style="font-size: 1.1rem; font-weight: 700;">Bloom's Skill Mastery Radar</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted);">6 Cognitive Depth Levels</p>
+            </div>
+            <div class="empty-state-container" style="min-height: 200px;">
+              <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-circle-nodes"></i></div>
+              <div class="empty-state-title" style="font-size: 0.95rem;">No cognitive data.</div>
+              <div class="empty-state-text" style="font-size: 0.83rem; max-width: 240px; margin: 0;">Bloom taxonomy radar will appear after evaluations.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strongest / Weakest Topics — Empty State -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+          <div class="glass-card padding-lg" style="border-top: 4px solid var(--success);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--success-light); color: var(--success); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+              </div>
+              <h3 style="font-size: 1.05rem; font-weight: 700;">Strongest Concepts (&gt; 90%)</h3>
+            </div>
+            <div class="empty-state-container" style="min-height: 120px; border: 1px dashed var(--success); background: var(--success-light);">
+              <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">No concept data yet. Complete an evaluation to see your strengths.</div>
+            </div>
+          </div>
+
+          <div class="glass-card padding-lg" style="border-top: 4px solid var(--warning);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--warning-light); color: var(--warning); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i class="fa-solid fa-lightbulb"></i>
+              </div>
+              <h3 style="font-size: 1.05rem; font-weight: 700;">Recommended Areas to Review</h3>
+            </div>
+            <div class="empty-state-container" style="min-height: 120px; border: 1px dashed var(--warning); background: var(--warning-light);">
+              <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">No weak areas identified yet. Upload an answer sheet to get AI recommendations.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/student.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{student_name}}');
+      const exportBtn = document.getElementById('exportAnalyticsBtn');
+      if (exportBtn) exportBtn.addEventListener('click', () => TwinEvalApp.showToast('No Data', 'Complete an evaluation first to export analytics.', 'info'));
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

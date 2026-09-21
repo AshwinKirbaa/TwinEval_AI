@@ -1,0 +1,67 @@
+{
+  "OSI Model": {
+    "concepts": [
+      "Physical Layer",
+      "Data Link Layer",
+      "Network Layer",
+      "Transport Layer",
+      "Session Layer",
+      "Presentation Layer",
+      "Application Layer"
+    ],
+    "advantages": [
+      "Standardization",
+      "Interoperability",
+      "Easy Troubleshooting"
+    ],
+    "diagram": true
+  },
+  "TCP/IP Protocol": {
+    "concepts": [
+      "Network Access Layer",
+      "Internet Layer",
+      "Transport Layer",
+      "Application Layer",
+      "IP Address",
+      "TCP/UDP"
+    ],
+    "advantages": [
+      "Flexible Architecture",
+      "Widespread Industry Standard",
+      "Scalable Networking"
+    ],
+    "diagram": true
+  },
+  "Database Normalization": {
+    "concepts": [
+      "First Normal Form (1NF)",
+      "Second Normal Form (2NF)",
+      "Third Normal Form (3NF)",
+      "Boyce-Codd Normal Form (BCNF)",
+      "Primary Key",
+      "Foreign Key",
+      "Redundancy Reduction"
+    ],
+    "advantages": [
+      "Eliminates Data Redundancy",
+      "Ensures Data Integrity",
+      "Optimizes Query Efficiency"
+    ],
+    "diagram": false
+  },
+  "General Evaluation": {
+    "concepts": [
+      "Core Definitions",
+      "Key Principles",
+      "Technical Explanation",
+      "Real-World Examples",
+      "Summary"
+    ],
+    "advantages": [
+      "Clarity",
+      "Accuracy",
+      "Relevance"
+    ],
+    "diagram": false
+  }
+}

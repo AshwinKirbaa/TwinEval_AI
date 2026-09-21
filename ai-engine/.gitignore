@@ -1,0 +1,24 @@
+# Python virtual environments
+.venv/
+.venv312/
+venv/
+venv312/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# IDE
+.idea/
+
+# Build/output
+output/
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db

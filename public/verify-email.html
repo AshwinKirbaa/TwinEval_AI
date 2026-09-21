@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email - TwinEval AI</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="auth-page">
+  <div class="auth-container" style="grid-template-columns:1fr;max-width:620px;min-height:100vh;">
+    <div class="glass-card auth-card" style="text-align:center;">
+      <div class="brand-logo" style="margin:0 auto 18px;"><i class="fa-solid fa-brain"></i></div>
+      <h1 class="auth-title" id="verificationTitle">Verifying your email...</h1>
+      <p class="auth-subtitle" id="verificationMessage">Please wait while we activate your TwinEval AI account.</p>
+      <a href="index.html" class="btn btn-primary" id="loginLink" style="display:none;margin-top:20px;">Continue to sign in</a>
+    </div>
+  </div>
+  <script src="js/script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const title = document.getElementById('verificationTitle');
+      const message = document.getElementById('verificationMessage');
+      const loginLink = document.getElementById('loginLink');
+      const token = new URLSearchParams(window.location.search).get('token');
+      try {
+        if (!token) throw new Error('The verification link is missing its token.');
+        const response = await TwinEvalApp.apiFetch('/auth/verify-email?token=' + encodeURIComponent(token));
+        title.textContent = 'Email verified';
+        message.textContent = response.message || 'Your account is active. You can now sign in with your real email address.';
+        loginLink.style.display = 'inline-flex';
+      } catch (error) {
+        title.textContent = 'Verification unsuccessful';
+        message.textContent = error.message || 'This verification link is invalid or expired.';
+        loginLink.style.display = 'inline-flex';
+      }
+    });
+  </script>
+</body>
+</html>

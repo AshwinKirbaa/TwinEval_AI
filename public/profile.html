@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Settings - TwinEval AI</title>
+  <meta name="description" content="Manage user profile, personal details, academic preferences, and account security.">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/profile.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="profile-page">
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-brain"></i></div>
+        <div class="brand-name">TwinEval <span>AI</span></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">MAIN MENU</div>
+        <a href="student-dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie nav-icon"></i><span>Dashboard</span></a>
+        <a href="upload-answer.html" class="nav-link"><i class="fa-solid fa-cloud-arrow-up nav-icon"></i><span>Upload Answer</span></a>
+        <a href="results.html" class="nav-link"><i class="fa-solid fa-square-poll-vertical nav-icon"></i><span>Evaluation Results</span></a>
+        <a href="feedback.html" class="nav-link"><i class="fa-solid fa-comment-dots nav-icon"></i><span>AI Feedback</span></a>
+        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line nav-icon"></i><span>Analytics</span></a>
+        <div class="nav-section-title margin-top-md">ACCOUNT</div>
+        <a href="profile.html" class="nav-link active"><i class="fa-solid fa-user-gear nav-icon"></i><span>Profile Settings</span></a>
+        <a href="settings.html" class="nav-link"><i class="fa-solid fa-sliders nav-icon"></i><span>System Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div style="font-weight: 700; font-size: 1rem; color: var(--text-main);">Account Profile Settings</div>
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-card);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{student_name}}</div>
+              <div class="user-role">Student</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+
+        <div class="margin-bottom-lg">
+          <h1 style="font-size: 1.65rem; font-weight: 800; margin-bottom: 0.35rem; letter-spacing: -0.02em;">Manage User Profile</h1>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Update your institutional information, email preferences, and password.</p>
+        </div>
+
+        <!-- Profile Header Banner -->
+        <div class="glass-card padding-lg margin-bottom-lg" style="display: flex; align-items: center; gap: 1.75rem; flex-wrap: wrap;">
+          <div style="position: relative; flex-shrink: 0;">
+            <div id="profileAvatarCircle" style="width: 88px; height: 88px; border-radius: 50%; background: var(--bg-secondary); border: 3px solid var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--shadow-md);">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <button type="button" class="btn btn-icon btn-primary" id="uploadAvatarBtn" style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; font-size: 0.75rem;" title="Upload Avatar">
+              <i class="fa-solid fa-camera"></i>
+            </button>
+            <input type="file" id="avatarFileInput" accept="image/*" hidden>
+          </div>
+          <div>
+            <h2 class="user-name-display" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.3rem;">{{student_name}}</h2>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap;">
+              <span class="badge badge-primary profile-role-display">Student</span>
+              <span class="badge badge-accent user-dept-display">—</span>
+            </div>
+            <p class="user-email-display" style="font-size: 0.83rem; color: var(--text-muted);">—</p>
+          </div>
+        </div>
+
+        <!-- Personal & Academic Form -->
+        <div class="glass-card padding-xl margin-bottom-lg">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem;">Personal &amp; Academic Details</h3>
+          <form id="profileForm">
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div class="form-group">
+                <label for="profileName" class="form-label">Full Name</label>
+                <input type="text" id="profileName" class="form-input" placeholder="Enter your full name" required>
+              </div>
+              <div class="form-group">
+                <label for="profileEmail" class="form-label">Email Address</label>
+                <input type="email" id="profileEmail" class="form-input" placeholder="Enter your email address" required>
+              </div>
+            </div>
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div class="form-group">
+                <label for="profileCollege" class="form-label">College / University</label>
+                <input type="text" id="profileCollege" class="form-input" placeholder="Enter your institution name" required>
+              </div>
+              <div class="form-group">
+                <label for="profileDept" class="form-label">Department</label>
+                <input type="text" id="profileDept" class="form-input" placeholder="Enter your department" required>
+              </div>
+            </div>
+            <div class="form-group margin-bottom-lg">
+              <label for="profileYear" class="form-label">Academic Year / Level</label>
+              <select id="profileYear" class="form-input" style="appearance: auto;">
+                <option value="" disabled selected>Select academic year</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+                <option value="Faculty">Faculty / Educator</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-md">
+              <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
+            </button>
+          </form>
+        </div>
+
+        <!-- Password & Security Card -->
+        <div class="glass-card padding-xl margin-bottom-lg">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem;">Account Password &amp; Security</h3>
+          <form id="changePasswordForm">
+            <div class="form-group margin-bottom-sm">
+              <label for="currentPassword" class="form-label">Current Password</label>
+              <input type="password" id="currentPassword" class="form-input" placeholder="Enter current password" required>
+            </div>
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+              <div class="form-group">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input type="password" id="newPassword" class="form-input" placeholder="Enter new password" required>
+              </div>
+              <div class="form-group">
+                <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                <input type="password" id="confirmNewPassword" class="form-input" placeholder="Confirm new password" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-secondary btn-md">
+              <i class="fa-solid fa-key"></i> Update Security Password
+            </button>
+          </form>
+        </div>
+
+        <!-- Sign Out Card -->
+        <div class="glass-card padding-lg" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--danger);">Sign Out of Session</h4>
+            <p style="font-size: 0.83rem; color: var(--text-muted);">End your active workspace session securely.</p>
+          </div>
+          <button type="button" class="btn btn-ghost logout-trigger" style="color: var(--danger); border: 1px solid var(--danger);">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out Now
+          </button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/profile.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{student_name}}');
+      document.querySelectorAll('.user-email-display').forEach(el => el.textContent = user.email || '—');
+      document.querySelectorAll('.user-dept-display').forEach(el => el.textContent = user.department || '—');
+      document.querySelectorAll('.profile-role-display').forEach(el => el.textContent = user.role === 'Teacher' ? 'Educator' : 'Student');
+      if (user.name) document.getElementById('profileName').value = user.name;
+      if (user.email) document.getElementById('profileEmail').value = user.email;
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>

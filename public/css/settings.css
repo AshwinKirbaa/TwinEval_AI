@@ -1,0 +1,112 @@
+/* ==========================================================================
+   SETTINGS PAGE STYLES - CONFIGURATION & SYSTEM PREFERENCES
+   ========================================================================== */
+
+/* Tab hide/show — BOTH .settings-panel and .settings-section supported */
+.settings-panel,
+.settings-section {
+  display: none;
+}
+
+.settings-panel.active,
+.settings-section.active {
+  display: block;
+  animation: fadeIn 0.25s ease;
+}
+
+/* The settings page is intentionally one continuous workspace; categories
+   remain visually separated as cards but are no longer hidden behind tabs. */
+.settings-page .settings-section {
+  display: block;
+  animation: none;
+}
+
+/* Tab navigation bar */
+.settings-nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+
+.settings-tab-btn {
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+
+.settings-tab-btn:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.settings-tab-btn.active {
+  color: var(--primary);
+  background: var(--primary-light);
+  border-bottom: 2px solid var(--primary);
+}
+
+/* Setting rows */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: nowrap;
+}
+
+.setting-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.setting-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setting-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.setting-control {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Custom Range Slider */
+.custom-range {
+  width: 100%;
+  height: 6px;
+  background: var(--border-subtle);
+  border-radius: var(--radius-full);
+  accent-color: var(--primary);
+  cursor: pointer;
+}

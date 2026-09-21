@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - TwinEval AI</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/student.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="student-page eduka-page">
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo"><i class="fa-solid fa-brain"></i></div>
+      <div class="brand-name">TwinEval <span>AI</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">WORKSPACE</div>
+      <a href="student-dashboard.html" class="nav-link active"><i class="fa-solid fa-chart-pie nav-icon"></i><span>Dashboard</span></a>
+      <a href="upload-answer.html" class="nav-link"><i class="fa-solid fa-cloud-arrow-up nav-icon"></i><span>Upload Answer</span></a>
+      <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line nav-icon"></i><span>Analytics</span></a>
+      <div class="nav-section-title margin-top-md">ACCOUNT</div>
+      <a href="profile.html" class="nav-link"><i class="fa-solid fa-user nav-icon"></i><span>Profile</span></a>
+      <a href="settings.html" class="nav-link"><i class="fa-solid fa-sliders nav-icon"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="#" class="logout-trigger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i><span>Sign Out</span></a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header eduka-header">
+      <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Open navigation"><i class="fa-solid fa-bars"></i></button>
+      <div class="header-search">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input id="assignmentSearchInput" class="search-input" type="search" placeholder="Search for evaluation, subject, and more">
+      </div>
+      <div class="header-actions">
+        <div class="dropdown-wrapper notification-wrap">
+          <button type="button" class="header-icon-btn" id="notificationBtn" aria-label="Notifications" aria-expanded="false">
+            <i class="fa-regular fa-bell"></i><span class="notification-dot" hidden></span>
+          </button>
+          <div class="dropdown-menu notification-menu" id="notificationDropdownMenu" hidden>
+            <div class="dropdown-heading">Notifications</div>
+            <div class="notification-empty"><span><i class="fa-regular fa-bell-slash"></i></span><strong>You're all caught up</strong><small>No new evaluation updates right now.</small></div>
+          </div>
+        </div>
+        <div class="dropdown-wrapper account-wrap">
+          <button type="button" class="user-profile-pill" aria-label="Open account menu" aria-expanded="false">
+            <span class="user-avatar"><i class="fa-solid fa-user"></i></span>
+            <span class="user-info"><span class="user-name user-name-display">Student</span><span class="user-role">STUDENT</span></span>
+            <i class="fa-solid fa-chevron-down account-chevron"></i>
+          </button>
+          <div class="dropdown-menu account-dropdown-menu" hidden>
+            <div class="account-menu-head"><span class="user-avatar large"><i class="fa-solid fa-user"></i></span><div><strong class="user-name-display">Student</strong><small>Student account</small></div></div>
+            <a class="dropdown-item" href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+            <a class="dropdown-item" href="settings.html"><i class="fa-solid fa-sliders"></i> Settings</a>
+
+            <div class="dropdown-divider"></div>
+            <button type="button" class="dropdown-item dropdown-item-btn js-dropdown-logout"><i class="fa-solid fa-right-from-bracket"></i> Sign out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-body eduka-content">
+      <div class="page-heading-row">
+        <div>
+          <div class="eyebrow">STUDENT WORKSPACE</div>
+          <h1>Good to see you, <span class="accent-text user-name-display">Student</span></h1>
+          <p>Track your answer-sheet evaluations and improve with AI-powered feedback.</p>
+        </div>
+        <a href="upload-answer.html" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Upload answer</a>
+      </div>
+
+      <section class="dashboard-grid-top">
+        <article class="eduka-card grade-card">
+          <div class="card-topline"><div><h2>Evaluation performance</h2><p>Your recent evaluation scores</p></div><a href="analytics.html" class="round-arrow"><i class="fa-solid fa-arrow-right"></i></a></div>
+          <div id="performanceChart" class="performance-chart"><div class="chart-empty"><i class="fa-solid fa-chart-line"></i><span>No evaluations yet</span><small>Upload an answer sheet to start.</small></div></div>
+        </article>
+        <article class="eduka-card calendar-card">
+          <div class="card-topline"><div><h2 id="calendarMonth">Today</h2><p id="calendarDate">Evaluation workspace</p></div><div class="calendar-controls"><button id="calendarPrev" aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button><button id="calendarNext" aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button></div></div>
+          <div class="mini-calendar" id="miniCalendar"></div>
+        </article>
+      </section>
+
+      <section class="stats-grid eduka-stats">
+        <article class="eduka-stat"><span class="stat-circle coral"><i class="fa-solid fa-file-circle-check"></i></span><div><strong id="statEvaluated">0</strong><span>Evaluated papers</span></div></article>
+        <article class="eduka-stat"><span class="stat-circle purple"><i class="fa-solid fa-chart-simple"></i></span><div><strong id="statAverage">—</strong><span>Average score</span></div></article>
+        <article class="eduka-stat"><span class="stat-circle green"><i class="fa-solid fa-trophy"></i></span><div><strong id="statHigh">—</strong><span>Highest score</span></div></article>
+        <article class="eduka-stat"><span class="stat-circle yellow"><i class="fa-solid fa-clock"></i></span><div><strong id="statPending">0</strong><span>Pending review</span></div></article>
+      </section>
+
+      <section class="dashboard-grid-bottom">
+        <article class="eduka-card activity-card">
+          <div class="card-topline"><div><h2>Recent activity</h2><p>Your latest answer-sheet evaluations</p></div><a href="results.html" class="text-link">View all</a></div>
+          <div id="recentEvaluations" class="activity-list"><div class="list-empty"><i class="fa-regular fa-file-lines"></i><strong>No evaluations yet</strong><span>Your completed evaluations will appear here.</span></div></div>
+        </article>
+        <article class="eduka-card progress-card">
+          <div class="card-topline"><div><h2>Evaluation progress</h2><p>Completed vs pending submissions</p></div></div>
+          <div class="progress-donut-wrap"><div class="progress-donut" id="progressDonut"><div><strong id="progressPercent">0%</strong><span>completed</span></div></div></div>
+          <div class="legend-row"><span><i class="legend-dot coral"></i>Completed <b id="completedCount">0</b></span><span><i class="legend-dot purple"></i>Pending <b id="pendingCount">0</b></span></div>
+        </article>
+      </section>
+
+      <section class="eduka-card upcoming-card">
+        <div class="card-topline"><div><h2>Available question papers</h2><p>Published papers you can answer</p></div><a href="upload-answer.html" class="text-link">Start evaluation</a></div>
+        <div id="availablePapers" class="paper-list"><div class="list-empty compact"><i class="fa-regular fa-folder-open"></i><span>No published papers available.</span></div></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="js/script.js"></script>
+<script src="js/student.js"></script>
+<script src="js/redesign.js"></script>
+</body>
+</html>

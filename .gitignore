@@ -1,0 +1,47 @@
+# Dependency directories
+node_modules/
+ai-engine/venv/
+ai-engine/__pycache__/
+ai-engine/agents/__pycache__/
+ai-engine/agents/database/__pycache__/
+ai-engine/models/__pycache__/
+ai-engine/services/__pycache__/
+ai-engine/utils/__pycache__/
+**/__pycache__/
+
+# Local configuration
+.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Uploads directory files (except .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# AI engine local data
+ai-engine/agents/database/store.json
+ai-engine/output/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+
+# Python tooling / caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+
+# SQLite runtime database files
+# The portable repository contains no demo database. Real user data stays local and is never committed.
+database/*.db
+database/*.db-wal
+database/*.db-shm

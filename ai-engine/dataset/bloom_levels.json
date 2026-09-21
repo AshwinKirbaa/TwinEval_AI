@@ -1,0 +1,67 @@
+{
+  "Remember": [
+    "define",
+    "list",
+    "identify",
+    "name",
+    "recall",
+    "state",
+    "mention"
+  ],
+
+  "Understand": [
+    "explain",
+    "describe",
+    "summarize",
+    "interpret",
+    "meaning",
+    "function",
+    "purpose",
+    "works",
+    "transfers",
+    "handles",
+    "provides",
+    "ensures",
+    "manages",
+    "performs"
+  ],
+
+  "Apply": [
+    "apply",
+    "use",
+    "implement",
+    "solve",
+    "execute",
+    "operate",
+    "demonstrate"
+  ],
+
+  "Analyze": [
+    "compare",
+    "differentiate",
+    "classify",
+    "analyze",
+    "relationship",
+    "contrast",
+    "examine"
+  ],
+
+  "Evaluate": [
+    "justify",
+    "assess",
+    "evaluate",
+    "recommend",
+    "criticize",
+    "judge"
+  ],
+
+  "Create": [
+    "design",
+    "develop",
+    "invent",
+    "construct",
+    "propose",
+    "build",
+    "create"
+  ]
+}

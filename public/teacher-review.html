@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Review Workspace - TwinEval AI</title>
+  <meta name="description" content="Educator dashboard for reviewing AI paper evaluations, overriding scores, and class analytics.">
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/teacher.css">
+  <link rel="stylesheet" href="css/redesign.css">
+</head>
+<body class="teacher-page">
+
+  <div class="app-layout">
+    <!-- Educator Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <div class="brand-name">TwinEval <span>Educator</span></div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">TEACHER PORTAL</div>
+        <a href="teacher-dashboard.html" class="nav-link">
+          <i class="fa-solid fa-chart-pie nav-icon"></i>
+          <span>Overview</span>
+        </a>
+        <a href="teacher-upload.html" class="nav-link">
+          <i class="fa-solid fa-file-circle-plus nav-icon"></i>
+          <span>Upload Paper &amp; Rubric</span>
+        </a>
+        <a href="teacher-review.html" class="nav-link active">
+          <i class="fa-solid fa-glasses nav-icon"></i>
+          <span>Review Workspace</span>
+        </a>
+        <a href="teacher-analytics.html" class="nav-link">
+          <i class="fa-solid fa-chart-user nav-icon"></i>
+          <span>Class Analytics</span>
+        </a>
+
+        <div class="nav-section-title margin-top-md">SYSTEM</div>
+        <a href="profile.html" class="nav-link">
+          <i class="fa-solid fa-user-gear nav-icon"></i>
+          <span>Profile Settings</span>
+        </a>
+        <a href="settings.html" class="nav-link">
+          <i class="fa-solid fa-sliders nav-icon"></i>
+          <span>System Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="logout-trigger" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="top-header">
+        <button type="button" class="mobile-nav-toggle btn btn-icon btn-ghost" aria-label="Toggle navigation menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-muted); display: flex; align-items: center; gap: 1rem;">
+          <span>Review Workspace</span>
+          <span class="badge badge-primary">Student: <span class="student-name-display">{{student_name}}</span></span>
+        </div>
+
+        <div class="header-actions">
+          <div class="user-profile-pill">
+            <div class="user-avatar" style="width:34px;height:34px;border-radius:50%;background:var(--bg-secondary);border:1.5px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-user"></i></div>
+            <div class="user-info">
+              <div class="user-name user-name-display">{{teacher_name}}</div>
+              <div class="user-role">Educator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body" style="padding-bottom: 1rem;">
+
+        <!-- Submission Picker -->
+        <div class="glass-card padding-md" style="margin-bottom:1.25rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+          <div class="form-group" style="flex:1; min-width:220px; margin-bottom:0;">
+            <label class="form-label" for="reviewPaperSelect">Question Paper</label>
+            <select id="reviewPaperSelect" class="form-input" style="appearance:auto;">
+              <option value="">Loading your papers...</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1; min-width:220px; margin-bottom:0;">
+            <label class="form-label" for="reviewSubmissionSelect">Student Submission</label>
+            <select id="reviewSubmissionSelect" class="form-input" style="appearance:auto;">
+              <option value="">Select a paper first</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Split Screen Workspace Container -->
+        <div class="review-workspace" id="reviewWorkspace" style="display:none;">
+          
+          <!-- Left Panel: Answer Sheet & OCR Document Viewer -->
+          <div class="glass-card document-viewer-card">
+            <div class="viewer-header">
+              <div class="viewer-title">
+                <i class="fa-solid fa-eye" style="color: var(--primary);"></i>
+                <span>OCR Extracted Answer Sheet View</span>
+              </div>
+              <span class="badge badge-accent" id="reviewStudentBadge"><i class="fa-solid fa-user"></i> --</span>
+            </div>
+
+            <div class="viewer-content" id="reviewAnswerSheets">
+              <!-- Populated dynamically by js/teacher-review.js -->
+            </div>
+          </div>
+
+          <!-- Right Panel: AI Score Breakdown & Score Override Controls -->
+          <div class="glass-card document-viewer-card" style="background: var(--bg-card);">
+            <div class="viewer-header">
+              <div class="viewer-title">
+                <i class="fa-solid fa-sliders" style="color: var(--accent-hover);"></i>
+                <span>AI Score vs Teacher Adjustment</span>
+              </div>
+              <span class="badge badge-success" id="reviewAiScoreBadge"><i class="fa-solid fa-circle-check"></i> AI Score: --</span>
+            </div>
+
+            <div style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
+              
+              <!-- Score Comparison Box -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="background: var(--primary-light); border: 1px solid var(--primary); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                  <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">AI CALCULATED SCORE</div>
+                  <div style="font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1.1;" id="reviewAiScore">-- / --</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;" id="reviewAiConfidence">--</div>
+                </div>
+
+                <div style="background: var(--accent-light); border: 1px solid var(--accent); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                  <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">TEACHER FINAL SCORE</div>
+                  <div style="font-size: 2rem; font-weight: 800; color: var(--accent-hover); line-height: 1.1;" id="finalCalculatedScore">--</div>
+                  <div style="font-size: 0.75rem; color: var(--accent-hover); margin-top: 2px;">Adjusted Real-time</div>
+                </div>
+              </div>
+
+              <!-- Interactive Score Override Slider -->
+              <div class="glass-card padding-md">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                  <label for="teacherScoreSlider" style="font-weight: 700; font-size: 0.9rem;">Override Overall Score</label>
+                  <span style="font-weight: 800; color: var(--primary); font-size: 1.1rem;" id="teacherScoreDisplay">-- / --</span>
+                </div>
+                <input type="range" id="teacherScoreSlider" min="0" max="100" value="0" style="width: 100%; height: 8px; border-radius: 4px; accent-color: var(--primary); cursor: pointer;">
+              </div>
+
+              <!-- Teacher Comments & Feedback Textarea -->
+              <div class="form-group">
+                <label for="teacherComments" class="form-label">Teacher Review Comments</label>
+                <textarea id="teacherComments" class="form-input" rows="4" style="resize: vertical;" placeholder="Add comments for the student..."></textarea>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary btn-md" id="approveSubmissionBtn" style="flex: 1;">
+                  <i class="fa-solid fa-circle-check"></i> Approve &amp; Finalize
+                </button>
+                <button type="button" class="btn btn-ghost btn-md" id="rejectSubmissionBtn" style="color: var(--warning); border: 1px solid var(--warning);">
+                  <i class="fa-solid fa-flag"></i> Flag All for Re-Review
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <div id="reviewEmptyState" class="glass-card padding-xl text-center" style="color:var(--text-muted);">
+          <i class="fa-solid fa-glasses" style="font-size:2rem; margin-bottom:0.75rem;"></i>
+          <p>Select a question paper and a student submission above to begin reviewing.</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/teacher-review.js"></script>
+  <script src="js/teacher.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
+      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{teacher_name}}');
+      
+      // Try to load a student name from evaluations or default
+      const studentNameDisplay = document.querySelector('.student-name-display');
+      if (studentNameDisplay) {
+        studentNameDisplay.textContent = '{{student_name}}';
+      }
+    });
+  </script>
+  <script src="js/redesign.js"></script>
+</body>
+</html>
