@@ -3,14 +3,21 @@ const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
 require('dotenv').config();
 
-// SQLite is built into supported modern Node.js releases, so TwinEval AI
-// does not require MySQL Server, credentials, ports, or a separate service.
-const configuredPath = process.env.DB_PATH || './database/twineval.db';
-const databasePath = path.isAbsolute(configuredPath)
-    ? configuredPath
-    : path.resolve(__dirname, '../..', configuredPath);
+const isVercel = Boolean(process.env.VERCEL);
 
-fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+const configuredPath = process.env.DB_PATH || './database/twineval.db';
+
+const databasePath = isVercel
+    ? '/tmp/twineval.db'
+    : (
+        path.isAbsolute(configuredPath)
+            ? configuredPath
+            : path.resolve(__dirname, '../..', configuredPath)
+    );
+
+if (!isVercel) {
+    fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+}
 
 const db = new DatabaseSync(databasePath);
 db.exec('PRAGMA foreign_keys = ON;');
