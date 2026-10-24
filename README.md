@@ -283,3 +283,29 @@ TWINEVAL-fixed/
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## Authentication
+
+TwinEval AI signs users in with **email + password**. A successful login sets an **HttpOnly, SameSite=Lax session cookie** (`twineval_session`; `Secure` when `NODE_ENV=production`), so the browser's JavaScript never holds the credential. The server re-reads the user's role from the database on every request; the role in the token or sent by the browser is never trusted. `Authorization: Bearer <token>` is still accepted for API clients (the login response still includes `token`).
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /auth/register` | Create a student or teacher account (admin accounts cannot be self-registered) and email a verification link |
+| `POST /auth/login` | `{ email, password, remember }` - sets the session cookie. `remember=true` keeps it for `JWT_EXPIRES_IN` (7d); otherwise it ends with the browser session (12h max) |
+| `POST /auth/logout` | Clears the session cookie |
+| `GET /auth/me` | Current user (used to restore the session on page load) |
+| `POST /auth/forgot-password` | `{ email }` - always answers the same way; emails a 1-hour, single-use link if the account exists |
+| `POST /auth/reset-password` | `{ token, password }` - sets a new password and signs out all older sessions |
+
+**Required configuration** (see `.env.example`): `JWT_SECRET` (mandatory in production, 32+ characters) and SMTP settings (`SMTP_USER`, `SMTP_PASS`, plus `SMTP_HOST`/`SMTP_PORT`/`SMTP_FROM` for non-Gmail providers, and `PUBLIC_APP_URL` so links in emails point to your real address). If SMTP is not configured, sign-up and "Forgot password" respond with an explicit error; nothing pretends to send mail. Sign-in, rate limits (login 10 / 15 min, forgot-password 5 / 15 min, register 10 / hour per IP) and CSRF protection (custom header + same-origin check for cookie-authenticated writes) need no extra setup.
+
+To create an admin account, insert/update the row directly (`UPDATE Users SET role = 'admin' WHERE email = '...'`).
+
+**Run locally**
+
+```bash
+npm install
+cp .env.example .env      # then fill in SMTP settings; JWT_SECRET is optional in development
+npm start                 # http://localhost:5000
+npm test                  # unit + integration tests (Node 22.5+, no extra tooling)
+```

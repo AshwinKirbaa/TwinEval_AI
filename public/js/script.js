@@ -3,12 +3,26 @@
  * Series-A SaaS Architecture
  */
 
+/* Pages that do not require a session. Everything else is verified against the server
+   (GET /auth/me) before it is shown; the page stays hidden until that check completes. */
+const TWINEVAL_PUBLIC_PAGES = ['index.html', 'signup.html', 'verify-email.html', 'forgot-password.html', 'reset-password.html'];
+const TWINEVAL_CURRENT_PAGE = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+const TWINEVAL_IS_PUBLIC_PAGE = TWINEVAL_PUBLIC_PAGES.includes(TWINEVAL_CURRENT_PAGE);
+if (!TWINEVAL_IS_PUBLIC_PAGE) {
+  document.documentElement.classList.add('auth-pending');
+  const gateStyle = document.createElement('style');
+  gateStyle.textContent = 'html.auth-pending body{visibility:hidden}';
+  document.head.appendChild(gateStyle);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   TwinEvalApp.init();
 });
 
 const TwinEvalApp = {
   init() {
+    this.setToken(null); // drop any legacy token an older version stored in the browser
+    this.guardPage();
     this.initTheme();
     this.initSidebar();
     this.initRipples();
@@ -18,37 +32,107 @@ const TwinEvalApp = {
     this.loadState();
     this.initGlobalEvents();
     this.initDropdowns();
-    this.syncUserFromServer();
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) this.guardPage(); // page restored from back/forward cache: re-verify
+    });
   },
 
-  /**
-   * Refreshes the locally-cached user object (name/email/role/avatar)
-   * from the authoritative server record. Runs on every page, not just
-   * profile.html -- so a profile photo (or a role/name correction)
-   * shows up everywhere immediately after login, on any device,
-   * without requiring a visit to the profile page first. Silently
-   * no-ops if there's no token yet, or if the request fails (e.g.
-   * offline) -- the existing local cache is left as the fallback.
-   */
-  async syncUserFromServer() {
-    if (!this.getToken()) return;
+  /* ==========================================
+     0. SESSION GUARD
+     The browser never holds the credential (it lives in an HttpOnly
+     cookie), so "signed in" is always decided by the server:
+       - protected pages: ask /auth/me; redirect to sign-in if rejected,
+         or to the user's own dashboard if the role does not fit the page
+       - sign-in page: if a valid session exists, go straight to the dashboard
+     The role used here comes from the server response, never from storage.
+     ========================================== */
+  STUDENT_ONLY_PAGES: ['student-dashboard.html', 'upload-answer.html', 'results.html', 'feedback.html', 'analytics.html', 'processing.html'],
+
+  dashboardFor(role) {
+    return (role === 'teacher' || role === 'admin') ? 'teacher-dashboard.html' : 'student-dashboard.html';
+  },
+
+  allowedOnCurrentPage(role) {
+    const page = TWINEVAL_CURRENT_PAGE;
+    const isTeacherRole = role === 'teacher' || role === 'admin';
+    if (page.startsWith('teacher-')) return isTeacherRole;
+    if (this.STUDENT_ONLY_PAGES.includes(page)) return role === 'student';
+    return true; // shared pages (profile, settings)
+  },
+
+  isSignedIn() {
+    const user = this.getUser();
+    return Boolean(user && user.user_id);
+  },
+
+  clearSession() {
+    this.setToken(null);
+    localStorage.removeItem('twineval_user');
+  },
+
+  redirectToSignIn(reason) {
+    this.clearSession();
+    window.location.replace('index.html' + (reason ? `?reason=${reason}` : ''));
+  },
+
+  async fetchSession() {
+    const response = await fetch(`${this.API_BASE}/auth/me`, {
+      cache: 'no-store',
+      credentials: this.API_BASE ? 'include' : 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    if (response.status === 401 || response.status === 403) return { authenticated: false };
+    if (!response.ok) throw new Error(`Session check failed (${response.status})`);
+    const body = await response.json();
+    return { authenticated: true, user: body.data };
+  },
+
+  async guardPage() {
+    const onSignIn = TWINEVAL_CURRENT_PAGE === 'index.html';
+    if (TWINEVAL_IS_PUBLIC_PAGE && !onSignIn) return;
+    const reveal = () => document.documentElement.classList.remove('auth-pending');
     try {
-      const res = await this.apiFetch('/auth/me');
-      const fresh = res.data;
-      const current = this.getUser() || {};
-      this.setUser({
-        ...current,
-        name: fresh.name || current.name,
-        email: fresh.email || current.email,
-        college: fresh.college ?? current.college ?? '',
-        department: fresh.department ?? current.department ?? '',
-        year: fresh.year ?? current.year ?? '',
-        role: fresh.role === 'teacher' ? 'Teacher' : (fresh.role === 'admin' ? 'Teacher' : 'Student'),
-        avatar_url: fresh.avatar_url || null,
-      });
+      const session = await this.fetchSession();
+      if (onSignIn) {
+        if (session.authenticated) window.location.replace(this.dashboardFor(session.user.role));
+        return;
+      }
+      if (!session.authenticated) return this.redirectToSignIn('expired');
+      const role = session.user.role;
+      if (!this.allowedOnCurrentPage(role)) {
+        return window.location.replace(this.dashboardFor(role));
+      }
+      this.applyServerUser(session.user);
+      reveal();
+      document.dispatchEvent(new CustomEvent('twineval:auth-ready', { detail: session.user }));
     } catch (err) {
-      // Not fatal -- keep whatever was already cached locally.
+      // Server unreachable. Show the page only if this browser has a known user; every API call
+      // is still authenticated server-side, so nothing protected can load.
+      if (onSignIn) return;
+      if (this.isSignedIn()) {
+        reveal();
+        this.showToast('You appear to be offline', 'We could not reach the server. Some data may not load.', 'warning');
+      } else {
+        this.redirectToSignIn();
+      }
     }
+  },
+
+  /** Merge the authoritative server record into the locally cached (non-secret) profile. */
+  applyServerUser(fresh) {
+    const current = this.getUser() || {};
+    this.setUser({
+      ...current,
+      user_id: fresh.user_id,
+      student_id: fresh.student_id ?? current.student_id ?? null,
+      name: fresh.name || current.name,
+      email: fresh.email || current.email,
+      college: fresh.college ?? current.college ?? '',
+      department: fresh.department ?? current.department ?? '',
+      year: fresh.year ?? current.year ?? '',
+      role: fresh.role === 'student' ? 'Student' : 'Teacher',
+      avatar_url: fresh.avatar_url || null,
+    });
   },
 
   /* ==========================================
@@ -282,13 +366,10 @@ const TwinEvalApp = {
     return `${this.API_BASE}${path}`;
   },
 
-  getToken() {
-    return localStorage.getItem('twineval_token');
-  },
-
-  setToken(token) {
-    if (token) localStorage.setItem('twineval_token', token);
-    else localStorage.removeItem('twineval_token');
+  /* The session credential is an HttpOnly cookie that scripts cannot read, so there is
+     no token to store. setToken(null) only removes a token an older version left behind. */
+  setToken() {
+    localStorage.removeItem('twineval_token');
   },
 
   /**
@@ -299,21 +380,31 @@ const TwinEvalApp = {
    * just try/catch instead of checking res.ok everywhere.
    */
   async apiFetch(path, options = {}) {
-    const token = this.getToken();
-    const headers = Object.assign({}, options.headers || {});
+    const headers = Object.assign({ 'X-Requested-With': 'XMLHttpRequest' }, options.headers || {});
     if (!(options.body instanceof FormData) && options.body && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
     }
-    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const requestOptions = Object.assign({}, options, { headers });
+    const requestOptions = Object.assign({ credentials: this.API_BASE ? 'include' : 'same-origin' }, options, { headers });
     // API JSON requests should always receive a body. Browser/server
     // revalidation can otherwise surface a raw 304 response here, which
     // has no JSON payload and makes dashboard Promise.all calls fail.
     if (!requestOptions.method || requestOptions.method.toUpperCase() === 'GET') {
       requestOptions.cache = 'no-store';
     }
-    const response = await fetch(`${this.API_BASE}${path}`, requestOptions);
+    let response;
+    try {
+      response = await fetch(`${this.API_BASE}${path}`, requestOptions);
+    } catch (networkError) {
+      const err = new Error('We could not reach the server. Check your connection and try again.');
+      err.network = true;
+      throw err;
+    }
+
+    // An expired/invalid session on a protected page sends the user back to sign in.
+    if (response.status === 401 && !TWINEVAL_IS_PUBLIC_PAGE) {
+      this.redirectToSignIn('expired');
+    }
 
     // Some endpoints (PDF download) return a raw file, not JSON --
     // let the caller handle `response` directly for those.
@@ -365,13 +456,16 @@ const TwinEvalApp = {
     });
   },
 
-  logout() {
-    this.setToken(null);
-    localStorage.removeItem('twineval_user');
-    this.showToast('Logged Out', 'Redirecting to sign-in page...', 'info');
-    setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 1000);
+  async logout() {
+    try {
+      await fetch(`${this.API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: this.API_BASE ? 'include' : 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+    } catch (_) { /* cookie is cleared locally by the redirect below even if offline */ }
+    this.clearSession();
+    window.location.replace('index.html?reason=signedout');
   },
 
   /* ==========================================

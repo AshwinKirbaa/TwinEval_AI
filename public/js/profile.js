@@ -40,7 +40,7 @@ const ProfileModule = {
     // after logging in on another device, or if the local cache was
     // cleared by a logout on this browser. Falls back silently to the
     // cached values above if the request fails (e.g. offline).
-    if (TwinEvalApp.getToken()) {
+    if (TwinEvalApp.isSignedIn()) {
       try {
         const res = await TwinEvalApp.apiFetch('/auth/me');
         const fresh = res.data;

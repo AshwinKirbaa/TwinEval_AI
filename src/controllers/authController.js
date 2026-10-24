@@ -4,7 +4,28 @@ const crypto = require('crypto');
 const UserModel = require('../models/userModel');
 const StudentModel = require('../models/studentModel');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
-const { sendVerificationEmail, isConfigured: isEmailConfigured } = require('../services/emailService');
+const { sendVerificationEmail, sendPasswordResetEmail, isConfigured: isEmailConfigured } = require('../services/emailService');
+const { COOKIE_NAME, getJwtSecret, sessionLifetime, durationToMs, cookieOptions } = require('../config/authConfig');
+
+const BCRYPT_ROUNDS = Math.min(Math.max(Number(process.env.BCRYPT_ROUNDS) || 12, 10), 14);
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const sha256 = value => crypto.createHash('sha256').update(value).digest('hex');
+const GENERIC_LOGIN_ERROR = 'Incorrect email or password. Please check your details and try again.';
+
+// Used to keep response timing similar whether or not the account exists.
+let dummyHashPromise = null;
+const getDummyHash = () => (dummyHashPromise ||= bcrypt.hash(crypto.randomBytes(16).toString('hex'), BCRYPT_ROUNDS));
+
+function issueSession(res, user, studentId, remember) {
+    const expiresIn = remember ? sessionLifetime.remember() : sessionLifetime.session();
+    const token = jwt.sign(
+        { user_id: user.user_id, email: user.email, name: user.name, role: user.role, student_id: studentId },
+        getJwtSecret(),
+        { expiresIn, algorithm: 'HS256' }
+    );
+    res.cookie(COOKIE_NAME, token, cookieOptions({ persistent: remember, maxAgeMs: durationToMs(expiresIn) }));
+    return token;
+}
 
 /**
  * Register new user
@@ -23,7 +44,12 @@ const register = async (req, res, next) => {
             return sendError(res, 'User with this email already exists.', 400);
         }
 
+        // Public sign-up can only create student or teacher accounts; admin accounts
+        // are never self-service (prevents role escalation through the API).
         const resolvedRole = role || 'teacher';
+        if (!['student', 'teacher'].includes(resolvedRole)) {
+            return sendError(res, 'Role must be student or teacher.', 400);
+        }
 
         if (resolvedRole === 'student') {
             if (!roll_no || !department || !semester) {
@@ -44,8 +70,7 @@ const register = async (req, res, next) => {
         const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
         // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
         // Save user
         const userId = await UserModel.create({
@@ -95,22 +120,19 @@ const register = async (req, res, next) => {
  */
 const login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, remember } = req.body;
+        const rememberMe = remember === true || remember === 'true';
 
-        // Find user by email
+        // Always run a bcrypt comparison so unknown emails and wrong passwords look identical.
         const user = await UserModel.findByEmail(email);
-        if (!user) {
-            return sendError(res, 'Invalid credentials. User not found.', 401);
+        const isMatch = await bcrypt.compare(String(password), user ? user.password : await getDummyHash());
+        if (!user || !isMatch) {
+            return sendError(res, GENERIC_LOGIN_ERROR, 401);
         }
 
+        // Only someone who knows the password learns the account is unverified.
         if (!user.email_verified_at) {
             return sendError(res, 'Please verify your email address before signing in. Check your inbox for the verification link.', 403);
-        }
-
-        // Verify password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return sendError(res, 'Invalid credentials. Password incorrect.', 401);
         }
 
         let studentId = null;
@@ -119,12 +141,7 @@ const login = async (req, res, next) => {
             studentId = student ? student.student_id : null;
         }
 
-        // Generate JWT Token
-        const token = jwt.sign(
-            { user_id: user.user_id, email: user.email, name: user.name, role: user.role, student_id: studentId },
-            process.env.JWT_SECRET || 'twineval_super_secret_jwt_key_2026_hackathon',
-            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-        );
+        const token = issueSession(res, user, studentId, rememberMe);
 
         return sendSuccess(res, 'Login successful', {
             user_id: user.user_id,
@@ -141,6 +158,68 @@ const login = async (req, res, next) => {
 };
 
 /**
+ * Log out: clears the session cookie.
+ * POST /auth/logout
+ */
+const logout = (req, res) => {
+    const { maxAge, ...clearOptions } = cookieOptions({ persistent: false });
+    res.clearCookie(COOKIE_NAME, clearOptions);
+    return sendSuccess(res, 'Signed out successfully');
+};
+
+/**
+ * Start password recovery
+ * POST /auth/forgot-password
+ * Always answers the same way for known and unknown emails.
+ */
+const forgotPassword = async (req, res, next) => {
+    try {
+        if (!isEmailConfigured()) {
+            return sendError(res, 'Password reset email is not available on this server yet. Please contact your administrator.', 503);
+        }
+        const { email } = req.body;
+        const user = await UserModel.findByEmail(email);
+        if (user) {
+            const token = crypto.randomBytes(32).toString('hex');
+            await UserModel.createPasswordReset(user.user_id, sha256(token), new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString());
+            // Not awaited, so response time does not reveal whether the account exists.
+            sendPasswordResetEmail({ to: user.email, name: user.name, token, request: req })
+                .catch(err => console.error('Password reset email delivery failed:', err.message));
+        }
+        return sendSuccess(res, 'If an account exists for that email address, we have sent a link to reset the password. The link is valid for 1 hour.');
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Complete password recovery
+ * POST /auth/reset-password
+ */
+const resetPassword = async (req, res, next) => {
+    try {
+        const { token, password } = req.body;
+        const invalid = () => sendError(res, 'This reset link is invalid or has expired. Please request a new one.', 400);
+
+        const reset = await UserModel.findPasswordReset(sha256(String(token)));
+        if (!reset || reset.used_at || new Date(reset.expires_at).getTime() < Date.now()) {
+            return invalid();
+        }
+        // Single use: only the request that flips used_at may continue.
+        if (!(await UserModel.consumePasswordReset(reset.reset_id))) {
+            return invalid();
+        }
+        const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
+        await UserModel.updatePassword(reset.user_id, hashed);
+
+        res.clearCookie(COOKIE_NAME, (({ maxAge, ...rest }) => rest)(cookieOptions({ persistent: false })));
+        return sendSuccess(res, 'Your password has been updated. You can now sign in with it.');
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * Get current user profile
  * GET /auth/me
  */
@@ -150,7 +229,7 @@ const getProfile = async (req, res, next) => {
         if (!user) {
             return sendError(res, 'User profile not found', 404);
         }
-        return sendSuccess(res, 'User profile retrieved successfully', user);
+        return sendSuccess(res, 'User profile retrieved successfully', { ...user, student_id: req.user.student_id });
     } catch (error) {
         next(error);
     }
@@ -245,6 +324,9 @@ const updateAvatar = async (req, res, next) => {
 module.exports = {
     register,
     login,
+    logout,
+    forgotPassword,
+    resetPassword,
     getProfile,
     verifyEmail,
     updateProfile,

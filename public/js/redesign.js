@@ -124,7 +124,7 @@
     menu.innerHTML = '<div class="dropdown-heading">Notifications</div><div class="notification-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Checking updates...</div>';
 
     try {
-      if (!window.TwinEvalApp || !TwinEvalApp.getToken()) throw new Error('not authenticated');
+      if (!window.TwinEvalApp || !TwinEvalApp.isSignedIn()) throw new Error('not authenticated');
       const [submissionResponse, paperResponse] = await Promise.all([
         TwinEvalApp.apiFetch('/submissions'),
         TwinEvalApp.apiFetch('/papers')

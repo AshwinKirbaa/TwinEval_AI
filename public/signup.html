@@ -1,225 +1,110 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Account - TwinEval AI</title>
-  <meta name="description" content="Register for TwinEval AI answer sheet evaluation platform for students and teachers.">
-  
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create account - TwinEval AI</title>
+  <meta name="description" content="TwinEval AI helps teachers evaluate answer sheets faster and helps students understand their results.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/redesign.css">
+  <link rel="stylesheet" href="css/auth.css">
 </head>
-<body class="auth-page">
+<body class="auth-body" data-page="signup">
+  <div class="auth-shell">
+    <aside class="auth-aside">
+      <a class="auth-logo" href="index.html" aria-label="TwinEval AI home"><span class="auth-logo-mark"><i class="fa-solid fa-brain" aria-hidden="true"></i></span><span>TwinEval <b>AI</b></span></a>
+      <div>
+        <h1>Fair, fast answer-sheet evaluation for every classroom.</h1>
+        <p>Teachers review AI-assisted marking in minutes. Students see exactly where they gained and lost marks.</p>
+      </div>
+      <ul class="auth-points">
+        <li><i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>Upload handwritten or typed answer sheets</span></li>
+        <li><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Question-by-question scores with clear feedback</span></li>
+        <li><i class="fa-solid fa-user-check" aria-hidden="true"></i><span>Teachers stay in control and can override any mark</span></li>
+      </ul>
+    </aside>
+    <main class="auth-main">
+      <div class="auth-panel wide">
+        <a class="auth-logo auth-mobile-brand" href="index.html"><span class="auth-logo-mark"><i class="fa-solid fa-brain" aria-hidden="true"></i></span><span>TwinEval <b>AI</b></span></a>
+        <div id="signupFormPanel">
+          <h2>Create your account</h2>
+          <p class="auth-lead">It takes a minute. We will email you a link to verify your address.</p>
+          <div id="formAlert" role="alert" aria-live="polite" hidden></div>
 
-  <div class="canvas-background">
-    <canvas id="particleCanvas"></canvas>
+          <form id="signupForm" novalidate>
+            <fieldset class="portal-switch">
+              <legend>I am a</legend>
+              <label class="portal-option"><input type="radio" name="accountRole" value="student" checked><span><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> Student</span></label>
+              <label class="portal-option"><input type="radio" name="accountRole" value="teacher"><span><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Teacher</span></label>
+            </fieldset>
+
+            <div class="field">
+              <label for="fullName">Full name</label>
+              <input type="text" id="fullName" autocomplete="name" placeholder="Alex Morgan" aria-describedby="fullNameError" required>
+              <p class="field-error" id="fullNameError"></p>
+            </div>
+            <div class="field">
+              <label for="signupEmail">Email address</label>
+              <input type="email" id="signupEmail" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="name@college.edu" aria-describedby="signupEmailError" required>
+              <p class="field-error" id="signupEmailError"></p>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="college">College / university</label>
+                <input type="text" id="college" autocomplete="organization" aria-describedby="collegeError" required>
+                <p class="field-error" id="collegeError"></p>
+              </div>
+              <div class="field">
+                <label for="department">Department</label>
+                <input type="text" id="department" aria-describedby="departmentError" required>
+                <p class="field-error" id="departmentError"></p>
+              </div>
+            </div>
+            <div class="field-row" id="studentFields">
+              <div class="field">
+                <label for="rollNumber">Roll / register number</label>
+                <input type="text" id="rollNumber" aria-describedby="rollNumberError">
+                <p class="field-error" id="rollNumberError"></p>
+              </div>
+              <div class="field">
+                <label for="studentSemester">Semester</label>
+                <select id="studentSemester">
+                  <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option>
+                  <option value="5">5th</option><option value="6" selected>6th</option><option value="7">7th</option><option value="8">8th</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="signupPassword">Password</label>
+                <div class="input-wrap has-toggle">
+                  <input type="password" id="signupPassword" autocomplete="new-password" aria-describedby="signupPasswordError signupPasswordHint" required>
+                  <button type="button" class="toggle-pw" data-for="signupPassword" aria-label="Show password" aria-pressed="false"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                </div>
+                <p class="field-hint" id="signupPasswordHint">At least 8 characters.</p>
+                <p class="field-error" id="signupPasswordError"></p>
+              </div>
+              <div class="field">
+                <label for="confirmPassword">Confirm password</label>
+                <input type="password" id="confirmPassword" autocomplete="new-password" aria-describedby="confirmPasswordError" required>
+                <p class="field-error" id="confirmPasswordError"></p>
+              </div>
+            </div>
+            <button type="submit" class="auth-btn" id="submitSignupBtn"><span>Create account</span></button>
+          </form>
+          <p class="auth-foot">Already have an account? <a class="auth-link" href="index.html">Sign in</a></p>
+        </div>
+
+        <div id="signupDonePanel" class="center" hidden>
+          <div class="state-icon ok"><i class="fa-solid fa-envelope-circle-check" aria-hidden="true"></i></div>
+          <h2>Verify your email</h2>
+          <p class="auth-lead">We sent a verification link to <strong id="sentTo"></strong>. Open it to activate your account, then sign in.</p>
+          <a class="auth-btn" href="index.html">Go to sign in</a>
+        </div>
+      </div>
+    </main>
   </div>
-
-  <div class="auth-container" style="max-width: 1000px;">
-    <!-- Left Hero Information -->
-    <div class="auth-hero" style="padding: 2.5rem 2rem;">
-      <div class="auth-brand">
-        <div class="brand-logo">
-          <i class="fa-solid fa-brain"></i>
-        </div>
-        <div class="brand-name">TwinEval <span>AI</span></div>
-      </div>
-
-      <h1 class="auth-hero-title" style="font-size: 2.1rem;">Join Next-Gen AI Academic Evaluation</h1>
-      <p class="auth-hero-subtitle">Create your institution profile to start evaluating answer sheets with precision, speed, and standard rubric transparency.</p>
-
-      <div class="glass-card padding-lg margin-top-lg signup-benefits">
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem;">
-            <i class="fa-solid fa-shield-halved"></i>
-          </div>
-          <div>
-            <h4>Institutional Security</h4>
-            <p>256-bit encryption and privacy-compliant account protection.</p>
-          </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem;">
-            <i class="fa-solid fa-bolt"></i>
-          </div>
-          <div>
-            <h4>Instant OCR Engine</h4>
-            <p>Extract handwritten text and formulas quickly for evaluation.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Signup Card -->
-    <div class="auth-card-wrapper" style="max-width: 540px;">
-      <div class="glass-card auth-card">
-        <div class="auth-header">
-          <h2 class="auth-title">Create Account</h2>
-          <p class="auth-subtitle">Register your account details below</p>
-        </div>
-
-        <!-- Role Selector -->
-        <div class="role-selector" id="signupRoleSelector">
-          <button type="button" class="role-btn active" data-role="Student">
-            <i class="fa-solid fa-user-graduate"></i> Student
-          </button>
-          <button type="button" class="role-btn" data-role="Teacher">
-            <i class="fa-solid fa-chalkboard-user"></i> Educator / Teacher
-          </button>
-        </div>
-
-        <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
-          <div id="signupError" role="alert" aria-live="polite" hidden style="margin-bottom:1rem;padding:0.85rem 1rem;border:1px solid #f1b7b7;background:#fff4f4;color:#b84f4f;border-radius:10px;font-size:0.78rem;line-height:1.5;"></div>
-          <div class="form-group">
-            <label for="fullName" class="form-label">Full Name</label>
-            <div class="input-with-icon">
-              <i class="fa-solid fa-user input-icon"></i>
-              <input type="text" id="fullName" class="form-input" placeholder="e.g. Alex Morgan" required>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="signupEmail" class="form-label">Email Address</label>
-            <div class="input-with-icon">
-              <i class="fa-solid fa-envelope input-icon"></i>
-              <input type="email" id="signupEmail" class="form-input" placeholder="alex.m@university.edu" required>
-            </div>
-          </div>
-
-          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
-              <label for="college" class="form-label">College / University</label>
-              <input type="text" id="college" class="form-input" placeholder="e.g. NIT Surathkal" required>
-            </div>
-            <div class="form-group">
-              <label for="department" class="form-label">Department</label>
-              <input type="text" id="department" class="form-input" placeholder="e.g. Computer Science" required>
-            </div>
-          </div>
-
-          <div class="form-row" id="studentFieldsRow" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group" id="rollNoGroup">
-              <label for="rollNumber" class="form-label">Roll / Register Number</label>
-              <input type="text" id="rollNumber" class="form-input" placeholder="e.g. REG2001">
-            </div>
-            <div class="form-group" id="yearGroup">
-              <label for="studentSemester" class="form-label">Semester</label>
-              <select id="studentSemester" class="form-input" style="appearance: auto;">
-                <option value="1">1st Semester</option>
-                <option value="2">2nd Semester</option>
-                <option value="3">3rd Semester</option>
-                <option value="4">4th Semester</option>
-                <option value="5">5th Semester</option>
-                <option value="6" selected>6th Semester</option>
-                <option value="7">7th Semester</option>
-                <option value="8">8th Semester</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
-              <label for="signupPassword" class="form-label">Password</label>
-              <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
-            </div>
-            <div class="form-group">
-              <label for="confirmPassword" class="form-label">Confirm Password</label>
-              <input type="password" id="confirmPassword" class="form-input" placeholder="••••••••" required>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-full btn-lg" id="submitSignupBtn" style="margin-top: 0.5rem;">
-            <span>Complete Registration</span>
-            <i class="fa-solid fa-user-plus"></i>
-          </button>
-        </form>
-
-        <div class="auth-footer">
-          Already have an account? <a href="index.html" class="auth-link">Sign In</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script src="js/script.js"></script>
-  <script>
-    let selectedRole = 'Student';
-    let signupSubmitting = false;
-
-    document.querySelectorAll('.role-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedRole = btn.getAttribute('data-role');
-
-        const studentFieldsRow = document.getElementById('studentFieldsRow');
-        studentFieldsRow.style.display = selectedRole === 'Teacher' ? 'none' : 'grid';
-      });
-    });
-
-    async function handleSignup(e) {
-      e.preventDefault();
-      if (signupSubmitting) return;
-      const errorBox = document.getElementById('signupError');
-      errorBox.hidden = true;
-      errorBox.textContent = '';
-      const pw = document.getElementById('signupPassword').value;
-      const confirmPw = document.getElementById('confirmPassword').value;
-
-      if (pw !== confirmPw) {
-        TwinEvalApp.showToast('Password Mismatch', 'Password and confirm password do not match.', 'danger');
-        return;
-      }
-
-      const isStudent = selectedRole === 'Student';
-      if (isStudent && !document.getElementById('rollNumber').value.trim()) {
-        TwinEvalApp.showToast('Missing Field', 'Roll / Register Number is required for students.', 'danger');
-        return;
-      }
-
-      const btn = document.getElementById('submitSignupBtn');
-      const originalHtml = btn.innerHTML;
-      signupSubmitting = true;
-      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Creating account...`;
-      btn.disabled = true;
-
-      const name = document.getElementById('fullName').value;
-      const email = document.getElementById('signupEmail').value;
-      const college = document.getElementById('college').value;
-      const department = document.getElementById('department').value;
-
-      const payload = {
-        name, email, password: pw, college,
-        role: isStudent ? 'student' : 'teacher',
-      };
-      if (isStudent) {
-        payload.department = department;
-        payload.roll_no = document.getElementById('rollNumber').value.trim();
-        payload.semester = parseInt(document.getElementById('studentSemester').value, 10);
-      }
-
-      try {
-        const res = await TwinEvalApp.apiFetch('/auth/register', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-
-        TwinEvalApp.showToast('Check your email', 'We sent a verification link to your email address. Verify it before signing in.', 'success');
-        btn.innerHTML = '<i class="fa-solid fa-envelope-circle-check"></i> Verification email sent';
-        setTimeout(() => { window.location.href = 'index.html'; }, 2400);
-      } catch (err) {
-        const message = err.message || 'Something went wrong. Please try again.';
-        errorBox.textContent = message;
-        errorBox.hidden = false;
-        errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-        signupSubmitting = false;
-      }
-    }
-  </script>
-  <script src="js/redesign.js"></script>
+  <script src="js/auth.js"></script>
 </body>
 </html>

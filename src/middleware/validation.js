@@ -19,8 +19,8 @@ const validate = (req, res, next) => {
 const validateRegistration = [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('email').trim().isEmail().withMessage('Valid email address is required').normalizeEmail(),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-    body('role').optional().isIn(['admin', 'teacher', 'student']).withMessage('Role must be admin, teacher, or student'),
+    body('password').isLength({ min: 8, max: 72 }).withMessage('Password must be between 8 and 72 characters long'),
+    body('role').optional().isIn(['teacher', 'student']).withMessage('Role must be teacher or student'),
     validate
 ];
 
@@ -29,7 +29,19 @@ const validateRegistration = [
  */
 const validateLogin = [
     body('email').trim().isEmail().withMessage('Valid email address is required').normalizeEmail(),
-    body('password').notEmpty().withMessage('Password is required'),
+    body('password').isString().notEmpty().withMessage('Password is required').isLength({ max: 1024 }).withMessage('Password is too long'),
+    body('remember').optional().isBoolean().withMessage('Invalid remember option'),
+    validate
+];
+
+const validateForgotPassword = [
+    body('email').trim().isEmail().withMessage('Valid email address is required').normalizeEmail(),
+    validate
+];
+
+const validateResetPassword = [
+    body('token').isString().matches(/^[a-f0-9]{64}$/i).withMessage('This reset link is invalid or has expired. Please request a new one.'),
+    body('password').isLength({ min: 8, max: 72 }).withMessage('Password must be between 8 and 72 characters long'),
     validate
 ];
 
@@ -84,6 +96,8 @@ const validateLearningPlan = [
 module.exports = {
     validateRegistration,
     validateLogin,
+    validateForgotPassword,
+    validateResetPassword,
     validateStudent,
     validateEvaluation,
     validateAIEvaluate,

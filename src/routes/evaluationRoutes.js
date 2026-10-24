@@ -9,14 +9,14 @@ const { validateEvaluation } = require('../middleware/validation');
  * @desc    Get all evaluation results
  * @access  Public / Private
  */
-router.get('/', evaluationController.getEvaluations);
+router.get('/', verifyToken, authorizeRoles('teacher', 'admin'), evaluationController.getEvaluations);
 
 /**
  * @route   GET /evaluations/:id
  * @desc    Get evaluation result by ID
  * @access  Public / Private
  */
-router.get('/:id', evaluationController.getEvaluationById);
+router.get('/:id', verifyToken, authorizeRoles('teacher', 'admin'), evaluationController.getEvaluationById);
 
 /**
  * @route   POST /evaluations

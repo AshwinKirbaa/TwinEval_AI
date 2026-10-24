@@ -206,6 +206,10 @@ const getPaperById = async (req, res, next) => {
         const { id } = req.params;
         const paper = await QuestionPaperModel.findById(id);
         if (!paper) return sendError(res, 'Question paper not found', 404);
+        // Students can only open papers a teacher has published.
+        if (req.user.role === 'student' && paper.status !== 'published') {
+            return sendError(res, 'Question paper not found', 404);
+        }
         return sendSuccess(res, 'Question paper retrieved successfully', paper);
     } catch (error) {
         next(error);

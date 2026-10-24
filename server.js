@@ -7,6 +7,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { testConnection } = require('./src/config/db');
+const { assertAuthConfig } = require('./src/config/authConfig');
 
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
@@ -26,7 +27,16 @@ const app = express();
 
 // Express Middleware Configuration
 app.use(helmet({ contentSecurityPolicy: false })); // Security Headers
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+if (process.env.TRUST_PROXY) {
+    // e.g. TRUST_PROXY=1 when running behind nginx/Render/Vercel so rate limiting sees the real client IP.
+    app.set('trust proxy', /^\d+$/.test(process.env.TRUST_PROXY) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY);
+}
+// The frontend is served by this same Express app, so no CORS headers are needed by default.
+// Set CORS_ORIGINS (comma-separated) only if a separately hosted frontend must call this API.
+const allowedOrigins = String(process.env.CORS_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+if (allowedOrigins.length) {
+    app.use(cors({ origin: allowedOrigins, credentials: true }));
+}
 // Default express.json() body limit is 100KB -- a paper with many
 // questions, each carrying a full AI-generated answer key (model
 // answer, keywords, concepts, rubric, etc), can realistically exceed
@@ -35,10 +45,17 @@ app.use(cors()); // Enable Cross-Origin Resource Sharing
 // successfully. Raised generously; this has no effect on AI behavior.
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(morgan('dev')); // HTTP Request Logging
+// HTTP request logging. One-time tokens in URLs (e.g. /auth/verify-email?token=...) are never logged.
+morgan.token('safe-url', req => String(req.originalUrl || req.url).split('?')[0]);
+app.use(morgan(':method :safe-url :status :response-time ms - :res[content-length]'));
 
 // Serve Frontend Static Files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+        // HTML is never cached, so a signed-out user cannot be shown a stale page via back/forward.
+        if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-store');
+    }
+}));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Root Status Health Check Endpoint
@@ -78,6 +95,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 // its own local AI engine so the central server does not need GPU/CPU-heavy
 // model hosting.
 const startServer = async () => {
+    assertAuthConfig(); // refuses to start in production without a strong JWT_SECRET
     await testConnection();
 
     app.listen(PORT, HOST, () => {
@@ -94,6 +112,11 @@ const startServer = async () => {
 process.on('SIGINT', () => process.exit(0));
 process.on('SIGTERM', () => process.exit(0));
 
-startServer();
+if (require.main === module) {
+    startServer().catch(error => {
+        console.error('❌ Failed to start TwinEval AI:', error.message);
+        process.exit(1);
+    });
+}
 
 module.exports = app;

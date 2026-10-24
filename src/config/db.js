@@ -101,12 +101,22 @@ function runMigrations() {
             console.log(`🔧 Migrated database: added Users.${column}`);
         }
     }
-    for (const column of ['email_verified_at', 'verification_token_hash', 'verification_expires_at']) {
+    for (const column of ['email_verified_at', 'verification_token_hash', 'verification_expires_at', 'password_changed_at']) {
         if (!userColumns.includes(column)) {
             db.exec(`ALTER TABLE Users ADD COLUMN ${column} TEXT`);
             console.log(`🔧 Migrated database: added Users.${column}`);
         }
     }
+    db.exec(`CREATE TABLE IF NOT EXISTS PasswordResetTokens (
+        reset_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token_hash TEXT NOT NULL UNIQUE,
+        expires_at TEXT NOT NULL,
+        used_at TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS idx_reset_user ON PasswordResetTokens(user_id)');
     // Accounts created before verification was introduced remain usable.
     db.exec("UPDATE Users SET email_verified_at = COALESCE(email_verified_at, created_at) WHERE email_verified_at IS NULL AND verification_token_hash IS NULL");
 }

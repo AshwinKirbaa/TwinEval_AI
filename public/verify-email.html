@@ -1,40 +1,63 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Email - TwinEval AI</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/redesign.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify email - TwinEval AI</title>
+  <meta name="description" content="TwinEval AI helps teachers evaluate answer sheets faster and helps students understand their results.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/auth.css">
 </head>
-<body class="auth-page">
-  <div class="auth-container" style="grid-template-columns:1fr;max-width:620px;min-height:100vh;">
-    <div class="glass-card auth-card" style="text-align:center;">
-      <div class="brand-logo" style="margin:0 auto 18px;"><i class="fa-solid fa-brain"></i></div>
-      <h1 class="auth-title" id="verificationTitle">Verifying your email...</h1>
-      <p class="auth-subtitle" id="verificationMessage">Please wait while we activate your TwinEval AI account.</p>
-      <a href="index.html" class="btn btn-primary" id="loginLink" style="display:none;margin-top:20px;">Continue to sign in</a>
-    </div>
+<body class="auth-body" data-page="verify">
+  <div class="auth-shell">
+    <aside class="auth-aside">
+      <a class="auth-logo" href="index.html" aria-label="TwinEval AI home"><span class="auth-logo-mark"><i class="fa-solid fa-brain" aria-hidden="true"></i></span><span>TwinEval <b>AI</b></span></a>
+      <div>
+        <h1>Fair, fast answer-sheet evaluation for every classroom.</h1>
+        <p>Teachers review AI-assisted marking in minutes. Students see exactly where they gained and lost marks.</p>
+      </div>
+      <ul class="auth-points">
+        <li><i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>Upload handwritten or typed answer sheets</span></li>
+        <li><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Question-by-question scores with clear feedback</span></li>
+        <li><i class="fa-solid fa-user-check" aria-hidden="true"></i><span>Teachers stay in control and can override any mark</span></li>
+      </ul>
+    </aside>
+    <main class="auth-main">
+      <div class="auth-panel">
+        <a class="auth-logo auth-mobile-brand" href="index.html"><span class="auth-logo-mark"><i class="fa-solid fa-brain" aria-hidden="true"></i></span><span>TwinEval <b>AI</b></span></a>
+        <div class="center">
+          <div class="state-icon" id="verificationIcon"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i></div>
+          <h2 id="verificationTitle">Verifying your email...</h2>
+          <p class="auth-lead" id="verificationMessage" role="status">Please wait while we activate your TwinEval AI account.</p>
+          <a href="index.html" class="auth-btn" id="loginLink" hidden>Continue to sign in</a>
+        </div>
+      </div>
+    </main>
   </div>
   <script src="js/script.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const title = document.getElementById('verificationTitle');
-      const message = document.getElementById('verificationMessage');
-      const loginLink = document.getElementById('loginLink');
-      const token = new URLSearchParams(window.location.search).get('token');
+    document.addEventListener('DOMContentLoaded', async function () {
+      var title = document.getElementById('verificationTitle');
+      var message = document.getElementById('verificationMessage');
+      var icon = document.getElementById('verificationIcon');
+      var loginLink = document.getElementById('loginLink');
+      var token = new URLSearchParams(window.location.search).get('token');
       try {
         if (!token) throw new Error('The verification link is missing its token.');
-        const response = await TwinEvalApp.apiFetch('/auth/verify-email?token=' + encodeURIComponent(token));
+        var response = await TwinEvalApp.apiFetch('/auth/verify-email?token=' + encodeURIComponent(token));
         title.textContent = 'Email verified';
-        message.textContent = response.message || 'Your account is active. You can now sign in with your real email address.';
-        loginLink.style.display = 'inline-flex';
+        message.textContent = response.message || 'Your account is active. You can now sign in.';
+        icon.className = 'state-icon ok';
+        icon.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i>';
       } catch (error) {
         title.textContent = 'Verification unsuccessful';
         message.textContent = error.message || 'This verification link is invalid or expired.';
-        loginLink.style.display = 'inline-flex';
+        icon.className = 'state-icon bad';
+        icon.innerHTML = '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>';
       }
+      loginLink.hidden = false;
+      window.history.replaceState(null, '', window.location.pathname);
     });
   </script>
 </body>

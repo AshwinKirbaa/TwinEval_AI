@@ -9,42 +9,42 @@ const { validateStudent } = require('../middleware/validation');
  * @desc    Get top performing students leaderboard
  * @access  Public / Private
  */
-router.get('/analytics/leaderboard', studentController.getLeaderboard);
+router.get('/analytics/leaderboard', verifyToken, authorizeRoles('teacher', 'admin'), studentController.getLeaderboard);
 
 /**
  * @route   GET /students
  * @desc    Get all students with search, filter, pagination, and sorting
  * @access  Public / Private
  */
-router.get('/', studentController.getStudents);
+router.get('/', verifyToken, authorizeRoles('teacher', 'admin'), studentController.getStudents);
 
 /**
  * @route   GET /students/:id
  * @desc    Get student by ID
  * @access  Public / Private
  */
-router.get('/:id', studentController.getStudentById);
+router.get('/:id', verifyToken, authorizeRoles('teacher', 'admin'), studentController.getStudentById);
 
 /**
  * @route   GET /students/:id/report
  * @desc    Get full student report (details, evaluations, AI score, learning plan)
  * @access  Public / Private
  */
-router.get('/:id/report', studentController.getStudentReport);
+router.get('/:id/report', verifyToken, authorizeRoles('teacher', 'admin'), studentController.getStudentReport);
 
 /**
  * @route   GET /students/:id/ranking
  * @desc    Get student class and department rank
  * @access  Public / Private
  */
-router.get('/:id/ranking', studentController.getStudentRanking);
+router.get('/:id/ranking', verifyToken, authorizeRoles('teacher', 'admin'), studentController.getStudentRanking);
 
 /**
  * @route   GET /students/:id/trend
  * @desc    Get student performance trend over time
  * @access  Public / Private
  */
-router.get('/:id/trend', studentController.getStudentTrend);
+router.get('/:id/trend', verifyToken, authorizeRoles('teacher', 'admin'), studentController.getStudentTrend);
 
 /**
  * @route   POST /students

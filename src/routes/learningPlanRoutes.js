@@ -9,14 +9,14 @@ const { validateLearningPlan } = require('../middleware/validation');
  * @desc    Get all learning plans
  * @access  Public / Private
  */
-router.get('/', learningPlanController.getPlans);
+router.get('/', verifyToken, authorizeRoles('teacher', 'admin'), learningPlanController.getPlans);
 
 /**
  * @route   GET /plans/:id
  * @desc    Get learning plan by ID
  * @access  Public / Private
  */
-router.get('/:id', learningPlanController.getPlanById);
+router.get('/:id', verifyToken, authorizeRoles('teacher', 'admin'), learningPlanController.getPlanById);
 
 /**
  * @route   POST /plans

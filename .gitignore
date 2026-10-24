@@ -45,3 +45,6 @@ ai-engine/output/
 database/*.db
 database/*.db-wal
 database/*.db-shm
+
+# Generated local development JWT secret
+database/.dev-jwt-secret

@@ -1,202 +1,70 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TwinEval AI - AI Powered Answer Evaluation Platform</title>
-  <meta name="description" content="Next-generation AI Answer Sheet Evaluation Platform using OCR, Semantic Understanding, Rubric Matching, and Bloom's Taxonomy.">
-  
-  <!-- Google Fonts & Font Awesome Icons -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in - TwinEval AI</title>
+  <meta name="description" content="TwinEval AI helps teachers evaluate answer sheets faster and helps students understand their results.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Core Design System CSS -->
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/redesign.css">
+  <link rel="stylesheet" href="css/auth.css">
 </head>
-<body class="auth-page">
-
-  <!-- Background Particle Animation Canvas -->
-  <div class="canvas-background">
-    <canvas id="particleCanvas"></canvas>
-  </div>
-
-  <div class="auth-container">
-    <!-- Left Hero Section (AI Visuals & Product Pitch) -->
-    <div class="auth-hero">
-      <div class="auth-brand">
-        <div class="brand-logo">
-          <i class="fa-solid fa-brain"></i>
-        </div>
-        <div class="brand-name">TwinEval <span>AI</span></div>
+<body class="auth-body" data-page="login">
+  <div class="auth-shell">
+    <aside class="auth-aside">
+      <a class="auth-logo" href="index.html" aria-label="TwinEval AI home"><span class="auth-logo-mark"><i class="fa-solid fa-brain" aria-hidden="true"></i></span><span>TwinEval <b>AI</b></span></a>
+      <div>
+        <h1>Fair, fast answer-sheet evaluation for every classroom.</h1>
+        <p>Teachers review AI-assisted marking in minutes. Students see exactly where they gained and lost marks.</p>
       </div>
+      <ul class="auth-points">
+        <li><i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>Upload handwritten or typed answer sheets</span></li>
+        <li><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Question-by-question scores with clear feedback</span></li>
+        <li><i class="fa-solid fa-user-check" aria-hidden="true"></i><span>Teachers stay in control and can override any mark</span></li>
+      </ul>
+    </aside>
+    <main class="auth-main">
+      <div class="auth-panel">
+        <a class="auth-logo auth-mobile-brand" href="index.html"><span class="auth-logo-mark"><i class="fa-solid fa-brain" aria-hidden="true"></i></span><span>TwinEval <b>AI</b></span></a>
+        <h2>Welcome back</h2>
+        <p class="auth-lead">Sign in to continue to your workspace.</p>
 
-      <h1 class="auth-hero-title">Automated Answer Sheet Evaluation Powered by Neural AI</h1>
-      <p class="auth-hero-subtitle">Scale university assessment with OCR text extraction, deep semantic analysis, Bloom's taxonomy mapping, and instant teacher review workflows.</p>
+        <div id="formAlert" role="alert" aria-live="polite" hidden></div>
 
-      <!-- Animated AI Brain & Orbit Graphic -->
-      <div class="ai-orbit-visual">
-        <div class="orbit-center-node">
-          <i class="fa-solid fa-microchip"></i>
-        </div>
-        <div class="orbit-ring ring-1">
-          <div class="orbit-node node-1" title="OCR Engine"><i class="fa-solid fa-eye"></i></div>
-        </div>
-        <div class="orbit-ring ring-2">
-          <div class="orbit-node node-2" title="Semantic AI"><i class="fa-solid fa-diagram-project"></i></div>
-          <div class="orbit-node node-3" title="Bloom Analysis"><i class="fa-solid fa-layer-group"></i></div>
-        </div>
-      </div>
+        <form id="loginForm" novalidate>
+          <fieldset class="portal-switch">
+            <legend>Sign in as</legend>
+            <label class="portal-option"><input type="radio" name="portal" value="student" checked><span><i class="fa-solid fa-user-graduate" aria-hidden="true"></i> Student</span></label>
+            <label class="portal-option"><input type="radio" name="portal" value="teacher"><span><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i> Teacher</span></label>
+          </fieldset>
 
-      <!-- Feature Highlight Cards -->
-      <div class="auth-features">
-        <div class="feature-card">
-          <i class="fa-solid fa-file-invoice"></i>
-          <div>
-            <h4>OCR Processing</h4>
-            <p>99.4% accuracy handwriting extraction</p>
+          <div class="field">
+            <label for="loginEmail">Email address</label>
+            <input type="email" id="loginEmail" name="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="name@college.edu" aria-describedby="loginEmailError" required autofocus>
+            <p class="field-error" id="loginEmailError"></p>
           </div>
-        </div>
-        <div class="feature-card">
-          <i class="fa-solid fa-chart-line"></i>
-          <div>
-            <h4>Bloom's Taxonomy</h4>
-            <p>Cognitive skill depth evaluation</p>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Right Side Login Form Card -->
-    <div class="auth-card-wrapper">
-      <div class="glass-card auth-card">
-        <div class="auth-header">
-          <h2 class="auth-title">Welcome Back</h2>
-          <p class="auth-subtitle">Sign in to access your assessment workspace</p>
-        </div>
-
-        <!-- Role Toggle Tabs -->
-        <div class="role-selector" id="roleSelector">
-          <button type="button" class="role-btn active" data-role="Student">
-            <i class="fa-solid fa-user-graduate"></i> Student Portal
-          </button>
-          <button type="button" class="role-btn" data-role="Teacher">
-            <i class="fa-solid fa-chalkboard-user"></i> Teacher Portal
-          </button>
-        </div>
-
-        <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
-          <div class="form-group">
-            <label for="loginEmail" class="form-label">Email Address</label>
-            <div class="input-with-icon">
-              <i class="fa-solid fa-envelope input-icon"></i>
-              <input type="email" id="loginEmail" class="form-input" placeholder="alex.m@university.edu" required>
+          <div class="field">
+            <div class="label-row"><label for="loginPassword">Password</label><a class="auth-link" href="forgot-password.html" style="font-size:.82rem">Forgot password?</a></div>
+            <div class="input-wrap has-toggle">
+              <input type="password" id="loginPassword" name="password" autocomplete="current-password" aria-describedby="loginPasswordError" required>
+              <button type="button" class="toggle-pw" data-for="loginPassword" aria-label="Show password" aria-pressed="false"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
             </div>
+            <p class="field-error" id="loginPasswordError"></p>
           </div>
 
-          <div class="form-group">
-            <label for="loginPassword" class="form-label">Password</label>
-            <div class="input-with-icon">
-              <i class="fa-solid fa-lock input-icon"></i>
-              <input type="password" id="loginPassword" class="form-input" placeholder="••••••••••••" required>
-              <button type="button" class="password-toggle" id="togglePasswordBtn" aria-label="Toggle password visibility">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-            </div>
+          <div class="options-row">
+            <label class="check"><input type="checkbox" id="rememberMe" checked> Keep me signed in for 7 days</label>
           </div>
 
-          <div class="form-options">
-            <label class="checkbox-container">
-              <input type="checkbox" checked>
-              <span class="checkmark"></span>
-              Remember me
-            </label>
-            <a href="#" class="forgot-link" onclick="TwinEvalApp.showToast('Password Reset', 'Password recovery link sent to your email.', 'info'); return false;">Forgot password?</a>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-full btn-lg" id="submitLoginBtn">
-            <span>Sign In to Workspace</span>
-            <i class="fa-solid fa-arrow-right"></i>
-          </button>
+          <button type="submit" class="auth-btn" id="submitLoginBtn"><span>Sign in</span></button>
         </form>
 
-        <div class="auth-footer">
-          Don't have an account? <a href="signup.html" class="auth-link">Create Account</a>
-        </div>
+        <p class="auth-foot">New to TwinEval AI? <a class="auth-link" href="signup.html">Create an account</a></p>
       </div>
-    </div>
+    </main>
   </div>
-
-  <!-- Global JavaScript Engine -->
   <script src="js/script.js"></script>
-  <script>
-    let selectedRole = 'Student';
-
-    document.querySelectorAll('.role-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedRole = btn.getAttribute('data-role');
-      });
-    });
-
-    const togglePw = document.getElementById('togglePasswordBtn');
-    if (togglePw) {
-      togglePw.addEventListener('click', () => {
-        const pwInput = document.getElementById('loginPassword');
-        const icon = togglePw.querySelector('i');
-        if (pwInput.type === 'password') {
-          pwInput.type = 'text';
-          icon.className = 'fa-solid fa-eye-slash';
-        } else {
-          pwInput.type = 'password';
-          icon.className = 'fa-solid fa-eye';
-        }
-      });
-    }
-
-    async function handleLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      const btn = document.getElementById('submitLoginBtn');
-      const originalHtml = btn.innerHTML;
-
-      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...`;
-      btn.disabled = true;
-
-      try {
-        const res = await TwinEvalApp.apiFetch('/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({ email, password })
-        });
-
-        const serverRole = res.data.role === 'teacher' ? 'Teacher' : 'Student';
-        if (serverRole !== selectedRole) {
-          TwinEvalApp.showToast('Wrong Portal', `This account is registered as a ${serverRole}. Redirecting you there instead.`, 'info');
-        }
-
-        TwinEvalApp.setToken(res.data.token);
-        TwinEvalApp.setUser({
-          user_id: res.data.user_id,
-          student_id: res.data.student_id,
-          name: res.data.name,
-          email: res.data.email,
-          role: serverRole
-        });
-
-        TwinEvalApp.showToast('Authentication Successful', `Welcome to TwinEval AI ${serverRole} Portal`, 'success');
-
-        setTimeout(() => {
-          window.location.href = serverRole === 'Teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
-        }, 800);
-      } catch (err) {
-        TwinEvalApp.showToast('Login Failed', err.message || 'Invalid email or password.', 'danger');
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-      }
-    }
-  </script>
-  <script src="js/redesign.js"></script>
+  <script src="js/auth.js"></script>
 </body>
 </html>

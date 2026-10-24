@@ -17,8 +17,8 @@ class UserModel {
      * Find user by email address
      */
     static async findByEmail(email) {
-        const sql = `SELECT * FROM Users WHERE email = ? LIMIT 1`;
-        const [rows] = await pool.execute(sql, [email]);
+        const sql = `SELECT * FROM Users WHERE email = ? COLLATE NOCASE LIMIT 1`;
+        const [rows] = await pool.execute(sql, [String(email || '').trim()]);
         return rows[0] || null;
     }
 
@@ -64,6 +64,36 @@ class UserModel {
     static async updateAvatar(id, avatarUrl) {
         const sql = `UPDATE Users SET avatar_url = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
         const [result] = await pool.execute(sql, [avatarUrl, id]);
+        return result.affectedRows > 0;
+    }
+
+    /** Minimal identity record used to validate a session on every request. */
+    static async findAuthById(id) {
+        const sql = `SELECT user_id, name, email, role, password_changed_at FROM Users WHERE user_id = ? LIMIT 1`;
+        const [rows] = await pool.execute(sql, [id]);
+        return rows[0] || null;
+    }
+
+    /** Replace the password hash and invalidate every session issued before now. */
+    static async updatePassword(id, passwordHash) {
+        const sql = `UPDATE Users SET password = ?, password_changed_at = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
+        const [result] = await pool.execute(sql, [passwordHash, new Date().toISOString(), id]);
+        return result.affectedRows > 0;
+    }
+
+    static async createPasswordReset(userId, tokenHash, expiresAt) {
+        await pool.execute(`UPDATE PasswordResetTokens SET used_at = ? WHERE user_id = ? AND used_at IS NULL`, [new Date().toISOString(), userId]);
+        await pool.execute(`INSERT INTO PasswordResetTokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)`, [userId, tokenHash, expiresAt]);
+    }
+
+    static async findPasswordReset(tokenHash) {
+        const [rows] = await pool.execute(`SELECT * FROM PasswordResetTokens WHERE token_hash = ? LIMIT 1`, [tokenHash]);
+        return rows[0] || null;
+    }
+
+    /** Atomically consume a reset token; returns false if it was already used. */
+    static async consumePasswordReset(resetId) {
+        const [result] = await pool.execute(`UPDATE PasswordResetTokens SET used_at = ? WHERE reset_id = ? AND used_at IS NULL`, [new Date().toISOString(), resetId]);
         return result.affectedRows > 0;
     }
 
