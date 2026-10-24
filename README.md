@@ -1,12 +1,4 @@
-# TwinEval AI — Intelligent Automated Student Evaluation & Analytics Platform
-
-[![Node.js](https://img.shields.io/badge/Node.js-v22.5%2B-green.svg)](https://nodejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Database](https://img.shields.io/badge/Database-SQLite-lightgrey.svg)](https://www.sqlite.org/)
-[![AI Engine](https://img.shields.io/badge/Ollama-gemma3%3A4b-purple.svg)](https://ollama.ai/)
-
----
+# TwinEval AI — Intelligent Automated Student Evaluation & Analytics Platform 
 
 ## 📌 What is TwinEval AI?
 
