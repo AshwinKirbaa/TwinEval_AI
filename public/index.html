@@ -85,12 +85,14 @@
           </button>
         </div>
 
-        <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+        <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)" novalidate>
+          <div id="loginNotice" role="status" aria-live="polite" hidden style="margin-bottom:1rem;padding:0.85rem 1rem;border:1px solid #c9d6f2;background:#f3f6ff;color:#3d4f86;border-radius:10px;font-size:0.78rem;line-height:1.5;"></div>
+          <div id="loginError" role="alert" aria-live="assertive" hidden style="margin-bottom:1rem;padding:0.85rem 1rem;border:1px solid #f1b7b7;background:#fff4f4;color:#b84f4f;border-radius:10px;font-size:0.78rem;line-height:1.5;"></div>
           <div class="form-group">
             <label for="loginEmail" class="form-label">Email Address</label>
             <div class="input-with-icon">
               <i class="fa-solid fa-envelope input-icon"></i>
-              <input type="email" id="loginEmail" class="form-input" placeholder="alex.m@university.edu" required>
+              <input type="email" id="loginEmail" class="form-input" placeholder="alex.m@university.edu" autocomplete="username" required>
             </div>
           </div>
 
@@ -98,8 +100,8 @@
             <label for="loginPassword" class="form-label">Password</label>
             <div class="input-with-icon">
               <i class="fa-solid fa-lock input-icon"></i>
-              <input type="password" id="loginPassword" class="form-input" placeholder="••••••••••••" required>
-              <button type="button" class="password-toggle" id="togglePasswordBtn" aria-label="Toggle password visibility">
+              <input type="password" id="loginPassword" class="form-input" placeholder="••••••••••••" autocomplete="current-password" required>
+              <button type="button" class="password-toggle" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false">
                 <i class="fa-solid fa-eye"></i>
               </button>
             </div>
@@ -107,11 +109,11 @@
 
           <div class="form-options">
             <label class="checkbox-container">
-              <input type="checkbox" checked>
+              <input type="checkbox" id="rememberMe">
               <span class="checkmark"></span>
               Remember me
             </label>
-            <a href="#" class="forgot-link" onclick="TwinEvalApp.showToast('Password Reset', 'Password recovery link sent to your email.', 'info'); return false;">Forgot password?</a>
+            <a href="forgot-password.html" class="forgot-link">Forgot password?</a>
           </div>
 
           <button type="submit" class="btn btn-primary btn-full btn-lg" id="submitLoginBtn">
@@ -148,35 +150,73 @@
         if (pwInput.type === 'password') {
           pwInput.type = 'text';
           icon.className = 'fa-solid fa-eye-slash';
+          togglePw.setAttribute('aria-label', 'Hide password');
+          togglePw.setAttribute('aria-pressed', 'true');
         } else {
           pwInput.type = 'password';
           icon.className = 'fa-solid fa-eye';
+          togglePw.setAttribute('aria-label', 'Show password');
+          togglePw.setAttribute('aria-pressed', 'false');
         }
       });
     }
 
+    const loginError = document.getElementById('loginError');
+    const loginNotice = document.getElementById('loginNotice');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session') === 'expired') {
+      loginNotice.textContent = 'Your session has ended. Please sign in again.';
+      loginNotice.hidden = false;
+    } else if (params.get('reset') === '1') {
+      loginNotice.textContent = 'Password updated. Sign in with your new password.';
+      loginNotice.hidden = false;
+    }
+
+    function showLoginError(message, withResend) {
+      loginError.textContent = message;
+      if (withResend) {
+        const link = document.createElement('a');
+        link.href = 'verify-email.html?resend=' + encodeURIComponent(document.getElementById('loginEmail').value.trim());
+        link.textContent = ' Resend verification email';
+        link.className = 'auth-link';
+        loginError.appendChild(link);
+      }
+      loginError.hidden = false;
+    }
+
+    let loginSubmitting = false;
     async function handleLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
+      if (loginSubmitting) return;
+      loginError.hidden = true;
+      const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
+      const remember = document.getElementById('rememberMe').checked;
       const btn = document.getElementById('submitLoginBtn');
       const originalHtml = btn.innerHTML;
 
+      if (!email || !password) {
+        showLoginError('Enter your email address and password.');
+        return;
+      }
+
+      loginSubmitting = true;
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...`;
       btn.disabled = true;
 
       try {
         const res = await TwinEvalApp.apiFetch('/auth/login', {
           method: 'POST',
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, password, remember })
         });
 
-        const serverRole = res.data.role === 'teacher' ? 'Teacher' : 'Student';
+        // The session itself lives in HttpOnly cookies; only display data is cached.
+        const serverRole = (res.data.role === 'teacher' || res.data.role === 'admin') ? 'Teacher' : 'Student';
         if (serverRole !== selectedRole) {
           TwinEvalApp.showToast('Wrong Portal', `This account is registered as a ${serverRole}. Redirecting you there instead.`, 'info');
         }
 
-        TwinEvalApp.setToken(res.data.token);
+        TwinEvalApp.setToken(null);
         TwinEvalApp.setUser({
           user_id: res.data.user_id,
           student_id: res.data.student_id,
@@ -191,9 +231,12 @@
           window.location.href = serverRole === 'Teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
         }, 800);
       } catch (err) {
-        TwinEvalApp.showToast('Login Failed', err.message || 'Invalid email or password.', 'danger');
+        const unverified = err.data && err.data.code === 'EMAIL_NOT_VERIFIED';
+        showLoginError(err.message || 'Unable to sign in. Please try again.', unverified);
+        document.getElementById('loginPassword').value = '';
         btn.innerHTML = originalHtml;
         btn.disabled = false;
+        loginSubmitting = false;
       }
     }
   </script>

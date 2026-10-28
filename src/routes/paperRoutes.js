@@ -42,14 +42,14 @@ router.post('/', verifyToken, authorizeRoles('teacher', 'admin'), upload.single(
  *          teacher's own via ?mine=true)
  * @access  Public / Private
  */
-router.get('/', paperController.getPapers);
+router.get('/', verifyToken, paperController.getPapers);
 
 /**
  * @route   GET /papers/:id
  * @desc    Get a paper with its questions + AI answer keys
  * @access  Public / Private
  */
-router.get('/:id', paperController.getPaperById);
+router.get('/:id', verifyToken, authorizeRoles('teacher', 'admin'), paperController.getPaperById);
 
 /**
  * @route   PATCH /papers/:id/publish

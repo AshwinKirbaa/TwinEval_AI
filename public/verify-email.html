@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verify Email - TwinEval AI</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/redesign.css">
 </head>
@@ -13,7 +14,19 @@
     <div class="glass-card auth-card" style="text-align:center;">
       <div class="brand-logo" style="margin:0 auto 18px;"><i class="fa-solid fa-brain"></i></div>
       <h1 class="auth-title" id="verificationTitle">Verifying your email...</h1>
-      <p class="auth-subtitle" id="verificationMessage">Please wait while we activate your TwinEval AI account.</p>
+      <p class="auth-subtitle" id="verificationMessage" role="status" aria-live="polite">Please wait while we activate your TwinEval AI account.</p>
+
+      <form id="resendForm" class="auth-form" hidden style="text-align:left;margin-top:20px;" novalidate>
+        <div class="form-group">
+          <label for="resendEmail" class="form-label">Email address</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-envelope input-icon"></i>
+            <input type="email" id="resendEmail" class="form-input" autocomplete="email" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="resendBtn"><span>Send a new verification link</span></button>
+      </form>
+
       <a href="index.html" class="btn btn-primary" id="loginLink" style="display:none;margin-top:20px;">Continue to sign in</a>
     </div>
   </div>
@@ -23,16 +36,51 @@
       const title = document.getElementById('verificationTitle');
       const message = document.getElementById('verificationMessage');
       const loginLink = document.getElementById('loginLink');
-      const token = new URLSearchParams(window.location.search).get('token');
+      const resendForm = document.getElementById('resendForm');
+      const resendEmail = document.getElementById('resendEmail');
+      const resendBtn = document.getElementById('resendBtn');
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+
+      function showResend(prefill) {
+        resendEmail.value = prefill || '';
+        resendForm.hidden = false;
+      }
+
+      resendForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (resendBtn.disabled) return;
+        const email = resendEmail.value.trim();
+        if (!email) { message.textContent = 'Enter the email address you registered with.'; return; }
+        resendBtn.disabled = true;
+        try {
+          const res = await TwinEvalApp.apiFetch('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) });
+          message.textContent = res.message;
+        } catch (error) {
+          message.textContent = error.message || 'Could not send a new link. Please try again later.';
+        } finally {
+          setTimeout(() => { resendBtn.disabled = false; }, 4000);
+        }
+      });
+
+      // Arrived from the sign-in page asking for a new link.
+      if (!token && params.has('resend')) {
+        title.textContent = 'Resend verification email';
+        message.textContent = 'Enter your email address and we will send a new verification link.';
+        showResend(params.get('resend'));
+        return;
+      }
+
       try {
         if (!token) throw new Error('The verification link is missing its token.');
-        const response = await TwinEvalApp.apiFetch('/auth/verify-email?token=' + encodeURIComponent(token));
+        const response = await TwinEvalApp.apiFetch('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) });
         title.textContent = 'Email verified';
-        message.textContent = response.message || 'Your account is active. You can now sign in with your real email address.';
+        message.textContent = response.message || 'Your account is active. You can now sign in.';
         loginLink.style.display = 'inline-flex';
       } catch (error) {
         title.textContent = 'Verification unsuccessful';
-        message.textContent = error.message || 'This verification link is invalid or expired.';
+        message.textContent = (error.message || 'This verification link is invalid or expired.') + ' You can request a new link below.';
+        showResend('');
         loginLink.style.display = 'inline-flex';
       }
     });

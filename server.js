@@ -6,7 +6,11 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const { testConnection } = require('./src/config/db');
+const { validateEnv, allowedOrigins } = require('./src/config/env');
+const { verifyToken, csrfOriginGuard } = require('./src/middleware/authMiddleware');
+const { serveUpload } = require('./src/middleware/uploadAccess');
 
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
@@ -25,8 +29,34 @@ const { notFoundHandler, globalErrorHandler } = require('./src/middleware/errorH
 const app = express();
 
 // Express Middleware Configuration
-app.use(helmet({ contentSecurityPolicy: false })); // Security Headers
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : process.env.TRUST_PROXY);
+app.use(helmet({
+    // Pages use inline scripts/styles and the Font Awesome / Google Fonts CDNs.
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com'],
+            scriptSrcAttr: ["'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'https://fonts.googleapis.com'],
+            fontSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://fonts.gstatic.com'],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            connectSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            frameAncestors: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            upgradeInsecureRequests: null
+        }
+    }
+})); // Security Headers
+// Credentialed CORS only for the app's own origin(s); same-origin requests
+// (the default deployment) never need CORS at all.
+app.use(cors({
+    credentials: true,
+    origin: (origin, callback) => callback(null, !origin || allowedOrigins().has(origin.replace(/\/$/, '')))
+}));
+app.use(cookieParser());
+app.use(csrfOriginGuard); // Cookie auth: reject cross-site state-changing requests
 // Default express.json() body limit is 100KB -- a paper with many
 // questions, each carrying a full AI-generated answer key (model
 // answer, keywords, concepts, rubric, etc), can realistically exceed
@@ -39,7 +69,9 @@ app.use(morgan('dev')); // HTTP Request Logging
 
 // Serve Frontend Static Files
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Uploaded answer sheets, papers and avatars are private: authenticated and
+// authorized per file (see src/middleware/uploadAccess.js).
+app.use('/uploads', verifyToken, serveUpload);
 
 // Root Status Health Check Endpoint
 app.get('/health', (req, res) => {
@@ -78,6 +110,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 // its own local AI engine so the central server does not need GPU/CPU-heavy
 // model hosting.
 const startServer = async () => {
+    validateEnv();
     await testConnection();
 
     app.listen(PORT, HOST, () => {
@@ -94,6 +127,10 @@ const startServer = async () => {
 process.on('SIGINT', () => process.exit(0));
 process.on('SIGTERM', () => process.exit(0));
 
-startServer();
+// Tests import the app without opening a port or touching process signals.
+if (require.main === module) {
+    startServer();
+}
 
 module.exports = app;
+module.exports.startServer = startServer;

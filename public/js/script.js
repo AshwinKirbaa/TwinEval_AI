@@ -31,13 +31,18 @@ const TwinEvalApp = {
    * offline) -- the existing local cache is left as the fallback.
    */
   async syncUserFromServer() {
-    if (!this.getToken()) return;
+    // Public auth pages have no session to restore. Everywhere else the
+    // HttpOnly session cookie is validated by the server on load; if it is
+    // missing/expired/revoked, apiFetch sends the user back to sign-in.
+    if (this.isPublicPage()) return;
     try {
       const res = await this.apiFetch('/auth/me');
       const fresh = res.data;
       const current = this.getUser() || {};
       this.setUser({
         ...current,
+        user_id: fresh.user_id ?? current.user_id,
+        student_id: fresh.student_id ?? current.student_id ?? null,
         name: fresh.name || current.name,
         email: fresh.email || current.email,
         college: fresh.college ?? current.college ?? '',
@@ -46,6 +51,7 @@ const TwinEvalApp = {
         role: fresh.role === 'teacher' ? 'Teacher' : (fresh.role === 'admin' ? 'Teacher' : 'Student'),
         avatar_url: fresh.avatar_url || null,
       });
+      this.redirectIfWrongPortal(fresh.role);
     } catch (err) {
       // Not fatal -- keep whatever was already cached locally.
     }
@@ -282,13 +288,44 @@ const TwinEvalApp = {
     return `${this.API_BASE}${path}`;
   },
 
+  /**
+   * Authentication uses HttpOnly cookies set by the server, which scripts
+   * cannot read. These remain only so older callers keep working and so a
+   * token left in localStorage by a previous version is cleaned up.
+   */
   getToken() {
-    return localStorage.getItem('twineval_token');
+    // Non-secret marker: a signed-in session is assumed while a cached user
+    // exists; the server validates the real cookie on every request.
+    return localStorage.getItem('twineval_user') ? 'cookie-session' : null;
   },
 
-  setToken(token) {
-    if (token) localStorage.setItem('twineval_token', token);
-    else localStorage.removeItem('twineval_token');
+  setToken() {
+    localStorage.removeItem('twineval_token');
+  },
+
+  PUBLIC_PAGES: ['', 'index.html', 'signup.html', 'verify-email.html', 'forgot-password.html', 'reset-password.html'],
+
+  isPublicPage() {
+    const page = window.location.pathname.split('/').pop();
+    return this.PUBLIC_PAGES.includes(page);
+  },
+
+  /** Server-side checks are authoritative; this just avoids dead-end pages. */
+  redirectIfWrongPortal(role) {
+    const page = window.location.pathname.split('/').pop();
+    const isStaff = role === 'teacher' || role === 'admin';
+    if (!isStaff && page.startsWith('teacher-')) window.location.replace('student-dashboard.html');
+    else if (isStaff && (page === 'student-dashboard.html' || page === 'upload-answer.html')) window.location.replace('teacher-dashboard.html');
+  },
+
+  /** Session ended (expired, revoked or signed out elsewhere): back to sign-in. */
+  handleSessionEnded() {
+    localStorage.removeItem('twineval_user');
+    localStorage.removeItem('twineval_token');
+    if (!this._redirectingToLogin) {
+      this._redirectingToLogin = true;
+      window.location.replace('index.html?session=expired');
+    }
   },
 
   /**
@@ -299,14 +336,13 @@ const TwinEvalApp = {
    * just try/catch instead of checking res.ok everywhere.
    */
   async apiFetch(path, options = {}) {
-    const token = this.getToken();
     const headers = Object.assign({}, options.headers || {});
     if (!(options.body instanceof FormData) && options.body && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
     }
-    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const requestOptions = Object.assign({}, options, { headers });
+    // Cookies carry the session; include them if the API is on another origin.
+    const requestOptions = Object.assign({ credentials: this.API_BASE ? 'include' : 'same-origin' }, options, { headers });
     // API JSON requests should always receive a body. Browser/server
     // revalidation can otherwise surface a raw 304 response here, which
     // has no JSON payload and makes dashboard Promise.all calls fail.
@@ -314,6 +350,7 @@ const TwinEvalApp = {
       requestOptions.cache = 'no-store';
     }
     const response = await fetch(`${this.API_BASE}${path}`, requestOptions);
+    if (response.status === 401 && !this.isPublicPage()) this.handleSessionEnded();
 
     // Some endpoints (PDF download) return a raw file, not JSON --
     // let the caller handle `response` directly for those.
@@ -365,13 +402,21 @@ const TwinEvalApp = {
     });
   },
 
-  logout() {
+  async logout() {
+    // Revoke the session on the server and clear the cookies; local UI state
+    // is cleared regardless so the user is never left half signed in.
+    try {
+      await fetch(`${this.API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: this.API_BASE ? 'include' : 'same-origin'
+      });
+    } catch (_) { /* offline: local state is still cleared below */ }
     this.setToken(null);
     localStorage.removeItem('twineval_user');
     this.showToast('Logged Out', 'Redirecting to sign-in page...', 'info');
     setTimeout(() => {
       window.location.href = 'index.html';
-    }, 1000);
+    }, 600);
   },
 
   /* ==========================================

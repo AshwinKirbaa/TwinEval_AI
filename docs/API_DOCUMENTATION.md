@@ -23,6 +23,8 @@ All API responses follow a strict, standardized JSON format:
 
 ## 1. Authentication APIs (`/auth`)
 
+> **Session model (updated):** authentication uses HttpOnly cookies set by `POST /auth/login` (`te_at`, `te_rt`); no token is returned in the response body and the `Authorization: Bearer` header is no longer used. Send requests with credentials (browser: same origin; Postman/curl: keep the cookie jar). State-changing requests from another origin are rejected. Password policy: 12–72 characters with a letter and a number. See the README "Authentication" section for the full endpoint list (`logout`, `verify-email`, `resend-verification`, `forgot-password`, `reset-password`). Listings of students, evaluations, plans, analytics and the dashboard require the teacher/admin role; students may only read their own record.
+
 ### 1.1 User Login
 - **URL**: `POST /auth/login`
 - **Access**: Public
@@ -108,8 +110,7 @@ All API responses follow a strict, standardized JSON format:
 
 ### 2.3 Create Student
 - **URL**: `POST /students`
-- **Access**: Private (Bearer Token Required, Role: teacher/admin)
-- **Headers**: `Authorization: Bearer <JWT_TOKEN>`
+- **Access**: Private (Session cookie required, Role: teacher/admin)
 - **Body**:
 ```json
 {
@@ -122,11 +123,11 @@ All API responses follow a strict, standardized JSON format:
 
 ### 2.4 Update Student
 - **URL**: `PUT /students/:id`
-- **Access**: Private (Bearer Token Required)
+- **Access**: Private (Session cookie required)
 
 ### 2.5 Delete Student
 - **URL**: `DELETE /students/:id`
-- **Access**: Private (Bearer Token Required)
+- **Access**: Private (Session cookie required)
 
 ### 2.6 Student Leaderboard API
 - **URL**: `GET /students/analytics/leaderboard?limit=10`
@@ -155,7 +156,7 @@ All API responses follow a strict, standardized JSON format:
 
 ### 3.2 Create Evaluation (with AI Score Auto-Calculation)
 - **URL**: `POST /evaluations`
-- **Access**: Private (Bearer Token Required)
+- **Access**: Private (Session cookie required)
 - **Body**:
 ```json
 {
@@ -201,7 +202,7 @@ All API responses follow a strict, standardized JSON format:
 
 ### 4.2 Create / Generate Learning Plan
 - **URL**: `POST /plans`
-- **Access**: Private (Bearer Token Required)
+- **Access**: Private (Session cookie required)
 - **Body**:
 ```json
 {

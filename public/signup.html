@@ -70,13 +70,13 @@
           </button>
         </div>
 
-        <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
+        <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)" novalidate>
           <div id="signupError" role="alert" aria-live="polite" hidden style="margin-bottom:1rem;padding:0.85rem 1rem;border:1px solid #f1b7b7;background:#fff4f4;color:#b84f4f;border-radius:10px;font-size:0.78rem;line-height:1.5;"></div>
           <div class="form-group">
             <label for="fullName" class="form-label">Full Name</label>
             <div class="input-with-icon">
               <i class="fa-solid fa-user input-icon"></i>
-              <input type="text" id="fullName" class="form-input" placeholder="e.g. Alex Morgan" required>
+              <input type="text" id="fullName" class="form-input" placeholder="e.g. Alex Morgan" autocomplete="name" maxlength="100" required>
             </div>
           </div>
 
@@ -84,7 +84,7 @@
             <label for="signupEmail" class="form-label">Email Address</label>
             <div class="input-with-icon">
               <i class="fa-solid fa-envelope input-icon"></i>
-              <input type="email" id="signupEmail" class="form-input" placeholder="alex.m@university.edu" required>
+              <input type="email" id="signupEmail" class="form-input" placeholder="alex.m@university.edu" autocomplete="email" required>
             </div>
           </div>
 
@@ -122,12 +122,18 @@
           <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
               <label for="signupPassword" class="form-label">Password</label>
-              <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
+              <input type="password" id="signupPassword" class="form-input" placeholder="At least 12 characters" autocomplete="new-password" minlength="12" maxlength="72" aria-describedby="passwordHint" required>
             </div>
             <div class="form-group">
               <label for="confirmPassword" class="form-label">Confirm Password</label>
-              <input type="password" id="confirmPassword" class="form-input" placeholder="••••••••" required>
+              <input type="password" id="confirmPassword" class="form-input" placeholder="Repeat password" autocomplete="new-password" minlength="12" maxlength="72" required>
             </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:-0.25rem 0 0.75rem;font-size:0.74rem;color:var(--text-secondary, #6b6a75);">
+            <span id="passwordHint">Use at least 12 characters, including a letter and a number.</span>
+            <label class="checkbox-container">
+              <input type="checkbox" id="showPasswords"><span class="checkmark"></span>Show
+            </label>
           </div>
 
           <button type="submit" class="btn btn-primary btn-full btn-lg" id="submitSignupBtn" style="margin-top: 0.5rem;">
@@ -159,6 +165,19 @@
       });
     });
 
+    document.getElementById('showPasswords').addEventListener('change', (event) => {
+      const type = event.target.checked ? 'text' : 'password';
+      document.getElementById('signupPassword').type = type;
+      document.getElementById('confirmPassword').type = type;
+    });
+
+    function passwordProblem(pw) {
+      if (pw.length < 12) return 'Password must be at least 12 characters long.';
+      if (new TextEncoder().encode(pw).length > 72) return 'Password must be at most 72 bytes long.';
+      if (!/[A-Za-z]/.test(pw) || !/[0-9]/.test(pw)) return 'Password must contain at least one letter and one number.';
+      return '';
+    }
+
     async function handleSignup(e) {
       e.preventDefault();
       if (signupSubmitting) return;
@@ -168,8 +187,17 @@
       const pw = document.getElementById('signupPassword').value;
       const confirmPw = document.getElementById('confirmPassword').value;
 
+      const problem = passwordProblem(pw);
+      if (problem) {
+        errorBox.textContent = problem;
+        errorBox.hidden = false;
+        document.getElementById('signupPassword').focus();
+        return;
+      }
       if (pw !== confirmPw) {
-        TwinEvalApp.showToast('Password Mismatch', 'Password and confirm password do not match.', 'danger');
+        errorBox.textContent = 'Password and confirm password do not match.';
+        errorBox.hidden = false;
+        document.getElementById('confirmPassword').focus();
         return;
       }
 
@@ -185,13 +213,13 @@
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Creating account...`;
       btn.disabled = true;
 
-      const name = document.getElementById('fullName').value;
-      const email = document.getElementById('signupEmail').value;
+      const name = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
       const college = document.getElementById('college').value;
       const department = document.getElementById('department').value;
 
       const payload = {
-        name, email, password: pw, college,
+        name, email, password: pw, confirm_password: confirmPw, college,
         role: isStudent ? 'student' : 'teacher',
       };
       if (isStudent) {
@@ -206,8 +234,14 @@
           body: JSON.stringify(payload)
         });
 
-        TwinEvalApp.showToast('Check your email', 'We sent a verification link to your email address. Verify it before signing in.', 'success');
-        btn.innerHTML = '<i class="fa-solid fa-envelope-circle-check"></i> Verification email sent';
+        // Only claim an email was sent if the server actually sent one.
+        if (res.data && res.data.email_sent === false) {
+          TwinEvalApp.showToast('Account created', res.message, 'info');
+          btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Account created';
+        } else {
+          TwinEvalApp.showToast('Check your email', 'We sent a verification link to your email address. Verify it before signing in.', 'success');
+          btn.innerHTML = '<i class="fa-solid fa-envelope-circle-check"></i> Verification email sent';
+        }
         setTimeout(() => { window.location.href = 'index.html'; }, 2400);
       } catch (err) {
         const message = err.message || 'Something went wrong. Please try again.';

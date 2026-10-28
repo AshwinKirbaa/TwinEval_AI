@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken, authorizeRoles } = require('../middleware/authMiddleware');
 const analyticsController = require('../controllers/analyticsController');
+
+// Staff only: aggregates every student's data.
+router.use(verifyToken, authorizeRoles('teacher', 'admin'));
 
 /**
  * @route   GET /analytics/department

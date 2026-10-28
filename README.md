@@ -45,7 +45,7 @@ The platform is designed with a lightweight, multi-tier architecture:
   - Personalized remediation and learning roadmap.
 - 🔒 **Security & Reliability**:
   - Mandatory email verification via SMTP (e.g., Gmail App Passwords).
-  - JWT token-based authentication with bcrypt password hashing.
+  - Email + password accounts: bcrypt hashing, 12+ character password policy, HttpOnly session cookies with server-side revocation, rate limiting and account lockout, email verification and password reset. See [Authentication](#-authentication).
   - Sanitized file handling and robust JSON error boundaries.
 
 ---
@@ -117,9 +117,8 @@ NODE_ENV=development
 # Database path (SQLite portable file)
 DB_PATH=./database/twineval.db
 
-# JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=7d
+# Authentication (JWT_SECRET is REQUIRED in production, 32+ random chars)
+JWT_SECRET=
 
 # Email Verification (SMTP)
 PUBLIC_APP_URL=http://localhost:5000
@@ -227,14 +226,49 @@ npm run dev
 
 ---
 
-## 🧪 Testing Credentials (Default Seed Data)
+## 🧪 Test Accounts
 
-If you ran `npm run setup`, the database includes pre-configured sample accounts:
+The setup script does not create user accounts. Register one from `/signup.html` (see [Authentication](#-authentication)); in development without SMTP the verification link is printed in the server console.
 
-| Role | Email | Password |
+---
+
+## 🔐 Authentication
+
+**Architecture.** The Express server owns authentication; there is no separate auth service.
+
+- **Sessions**: on login the server creates a row in `AuthSession` and sets two cookies: `te_at` (15-minute access JWT, carries the session id) and `te_rt` (opaque refresh token, stored only as a SHA-256 hash). Both are `HttpOnly`, `SameSite=Strict`, and `Secure` in production. If the access token has expired, a valid refresh cookie silently renews it. "Remember me" makes the refresh cookie persistent for 30 days; otherwise it is a browser-session cookie (12 h server-side limit).
+- **Revocation**: logout, password reset and disabling an account revoke sessions immediately; every request re-checks the session and the user's current role/status in the database.
+- **CSRF**: SameSite=Strict cookies plus an Origin check on every state-changing request.
+- **Roles**: public registration creates only `student` or `teacher` accounts. `admin` can never be self-registered (create one directly in the database). Roles are enforced on the backend (401 unauthenticated, 403 forbidden).
+- **Protection**: login is limited per IP+email, accounts lock for 15 minutes after 5 failed attempts (known and unknown emails alike), registration/reset/resend are rate limited, errors are generic (no account enumeration), reset and verification tokens are random, hashed at rest, expiring and single-use.
+- **Files**: `/uploads/*` requires sign-in and is authorized per file (own submission, the paper's teacher, or admin; avatars to any signed-in user).
+
+### Endpoints
+
+| Method | Path | Purpose |
 |---|---|---|
-| **Teacher** | `sarah.jenkins@twineval.edu` | `password123` |
-| **Student** | `alex.chen@student.twineval.edu` | `password123` |
+| POST | `/auth/register` | Create a student/teacher account (sends verification email) |
+| POST | `/auth/verify-email` | `{ token }` – verify email (single use, 24 h) |
+| POST | `/auth/resend-verification` | `{ email }` – generic response |
+| POST | `/auth/login` | `{ email, password, remember? }` – sets cookies |
+| POST | `/auth/logout` | Revoke session, clear cookies |
+| GET | `/auth/me` | Current user (restores state after refresh) |
+| POST | `/auth/forgot-password` | `{ email }` – generic response |
+| POST | `/auth/reset-password` | `{ token, password, confirm_password }` – single use, 1 h, revokes all sessions |
+
+Pages: `index.html` (sign in), `signup.html`, `verify-email.html`, `forgot-password.html`, `reset-password.html`.
+
+### Configuration
+
+See `.env.example`. Local development needs no auth configuration: without `JWT_SECRET` a temporary secret is generated (sessions reset on restart), and without SMTP the verification/reset links are **printed to the server console** (no email is sent, and the UI says so). **Production** requires `NODE_ENV=production`, a 32+ character `JWT_SECRET`, `PUBLIC_APP_URL` (HTTPS), working SMTP credentials, and `TRUST_PROXY` if behind a reverse proxy. Serve over HTTPS so `Secure` cookies are sent.
+
+### Testing
+
+```bash
+npm test
+```
+
+Runs the Node built-in test runner (no extra dependencies, temporary database) against registration, verification, login, lockout/rate limiting, logout/revocation, expiry, authorization, uploads, CSRF and password reset. Manual check: register at `/signup.html`, open the link printed in the console (or emailed), sign in, then try **Forgot password**, and **Sign Out** from the account menu.
 
 ---
 

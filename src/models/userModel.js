@@ -1,3 +1,4 @@
+const normalizeEmailLegacy = require('validator/lib/normalizeEmail').default;
 const { pool } = require('../config/db');
 
 class UserModel {
@@ -17,9 +18,58 @@ class UserModel {
      * Find user by email address
      */
     static async findByEmail(email) {
-        const sql = `SELECT * FROM Users WHERE email = ? LIMIT 1`;
-        const [rows] = await pool.execute(sql, [email]);
+        const sql = `SELECT * FROM Users WHERE lower(email) = ? LIMIT 1`;
+        const lowered = String(email || '').trim().toLowerCase();
+        const [rows] = await pool.execute(sql, [lowered]);
+        if (rows[0]) return rows[0];
+        // Accounts created before email handling was unified had their address
+        // rewritten by validator's normalizeEmail (e.g. Gmail dots removed).
+        const legacy = normalizeEmailLegacy(lowered);
+        if (legacy && legacy !== lowered) {
+            const [legacyRows] = await pool.execute(sql, [legacy]);
+            return legacyRows[0] || null;
+        }
+        return null;
+    }
+
+    /** Minimal, non-sensitive user context used to authorize each request. */
+    static async findAuthContext(id) {
+        const sql = `
+            SELECT u.user_id, u.name, u.email, u.role, u.account_status, u.email_verified_at, s.student_id
+            FROM Users u LEFT JOIN Student s ON s.user_id = u.user_id
+            WHERE u.user_id = ? LIMIT 1
+        `;
+        const [rows] = await pool.execute(sql, [id]);
         return rows[0] || null;
+    }
+
+    static async setVerificationToken(id, tokenHash, expiresAt) {
+        await pool.execute(
+            `UPDATE Users SET verification_token_hash = ?, verification_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+            [tokenHash, expiresAt, id]
+        );
+    }
+
+    static async setResetToken(id, tokenHash, expiresAt) {
+        await pool.execute(
+            `UPDATE Users SET reset_token_hash = ?, reset_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+            [tokenHash, expiresAt, id]
+        );
+    }
+
+    static async findByResetTokenHash(tokenHash) {
+        const [rows] = await pool.execute(`SELECT * FROM Users WHERE reset_token_hash = ? LIMIT 1`, [tokenHash]);
+        return rows[0] || null;
+    }
+
+    /** Replace the password hash and burn any outstanding reset token. */
+    static async updatePassword(id, passwordHash) {
+        const [result] = await pool.execute(
+            `UPDATE Users SET password = ?, reset_token_hash = NULL, reset_expires_at = NULL,
+                    password_changed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
+            [passwordHash, id]
+        );
+        return result.affectedRows > 0;
     }
 
     /**

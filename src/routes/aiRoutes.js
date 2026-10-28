@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken, authorizeRoles } = require('../middleware/authMiddleware');
 const aiController = require('../controllers/aiController');
 const { validateAIEvaluate } = require('../middleware/validation');
+
+// Staff only: aggregates every student's data.
+router.use(verifyToken, authorizeRoles('teacher', 'admin'));
 
 /**
  * @route   POST /ai/evaluate
