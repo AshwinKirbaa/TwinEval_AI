@@ -14,12 +14,34 @@ CREATE TABLE IF NOT EXISTS Users (
     email_verified_at TEXT,
     verification_token_hash TEXT,
     verification_expires_at TEXT,
+    reset_token_hash TEXT,
+    reset_expires_at TEXT,
+    password_changed_at TEXT,
+    account_status TEXT NOT NULL DEFAULT 'active' CHECK (account_status IN ('active', 'disabled')),
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_email ON Users(email);
 CREATE INDEX IF NOT EXISTS idx_user_role ON Users(role);
+
+-- Server-side login sessions. The refresh token is stored only as a SHA-256
+-- hash; revoking a row invalidates it and any access token carrying its id.
+-- (The case-insensitive unique email index is created by the startup
+-- migration in src/config/db.js so legacy duplicate data cannot block boot.)
+CREATE TABLE IF NOT EXISTS AuthSession (
+    session_id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    refresh_hash TEXT NOT NULL UNIQUE,
+    remember INTEGER NOT NULL DEFAULT 0,
+    expires_at TEXT NOT NULL,
+    revoked_at TEXT,
+    user_agent TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_authsession_user ON AuthSession(user_id);
 
 CREATE TABLE IF NOT EXISTS Student (
     student_id INTEGER PRIMARY KEY AUTOINCREMENT,
