@@ -25,6 +25,7 @@ uploads/*
 # AI engine local data
 ai-engine/agents/database/store.json
 ai-engine/output/
+output/*.pdf
 
 # IDE
 .idea/
