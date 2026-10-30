@@ -25,7 +25,14 @@ const { notFoundHandler, globalErrorHandler } = require('./src/middleware/errorH
 const app = express();
 
 // Express Middleware Configuration
-app.use(helmet({ contentSecurityPolicy: false })); // Security Headers
+// Google Identity Services uses a cross-origin popup to return its ID token.
+// Helmet's default `same-origin` COOP isolates that popup and leaves Brave/
+// Chrome showing a blank accounts.google.com/gsi/transform window. Google
+// explicitly requires `same-origin-allow-popups` when FedCM is unavailable.
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
+})); // Security Headers
 app.use(cors()); // Enable Cross-Origin Resource Sharing
 // Default express.json() body limit is 100KB -- a paper with many
 // questions, each carrying a full AI-generated answer key (model
