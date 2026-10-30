@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS Users (
 
 CREATE INDEX IF NOT EXISTS idx_user_email ON Users(email);
 CREATE INDEX IF NOT EXISTS idx_user_role ON Users(role);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_subject ON Users(google_subject);
 
 CREATE TABLE IF NOT EXISTS Student (
     student_id INTEGER PRIMARY KEY AUTOINCREMENT,
