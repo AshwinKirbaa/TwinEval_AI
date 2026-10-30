@@ -34,8 +34,6 @@ import time
 import mimetypes
 from pathlib import Path
 
-import ollama
-
 DEFAULT_TIMEOUT = float(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "90"))
 DEFAULT_RETRIES = int(os.environ.get("OLLAMA_MAX_RETRIES", "1"))
 
@@ -93,6 +91,7 @@ def _gemini_chat(model, messages, options=None, format=None):
 
 
 def _client(timeout: float):
+    import ollama
     if timeout not in _clients:
         _clients[timeout] = ollama.Client(timeout=timeout)
     return _clients[timeout]

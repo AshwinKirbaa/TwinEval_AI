@@ -1,9 +1,7 @@
 import json
+import os
 import re
 from pathlib import Path
-
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
 # Full, explicit Hugging Face repo id (https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2).
 # Small (22.7M params) and fast, while still giving good sentence-level
@@ -21,7 +19,15 @@ _MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 _MODEL_CACHE = {}
 
 
-def _get_shared_model(model_name: str) -> SentenceTransformer:
+def _get_shared_model(model_name: str):
+    # Hosted Gemini already performs the semantic grading. Avoid importing
+    # PyTorch/sentence-transformers in that deployment: those packages alone
+    # exceed Render free's 512 MB runtime. Exact concept matching remains as
+    # a deterministic secondary signal. Local Ollama keeps the embedding
+    # model for offline grading.
+    if os.environ.get("AI_PROVIDER", "ollama").strip().lower() == "gemini":
+        return None
+    from sentence_transformers import SentenceTransformer
     if model_name not in _MODEL_CACHE:
         _MODEL_CACHE[model_name] = SentenceTransformer(model_name)
     return _MODEL_CACHE[model_name]
@@ -136,10 +142,13 @@ class ConceptAgent:
             return [], expected
 
         # Precompute sentence embeddings for semantic similarity check
-        try:
-            sentence_embeddings = self.model.encode(sentences)
-        except Exception as e:
-            print(f"Embedding encoding error: {e}")
+        if self.model is not None:
+            try:
+                sentence_embeddings = self.model.encode(sentences)
+            except Exception as e:
+                print(f"Embedding encoding error: {e}")
+                sentence_embeddings = None
+        else:
             sentence_embeddings = None
 
         # First pass: cheap exact/substring keyword matching -- resolves
@@ -179,6 +188,7 @@ class ConceptAgent:
         # individual encode() call carries fixed per-call overhead that
         # batching avoids almost entirely.
         if needs_semantic_check and sentence_embeddings is not None and len(sentence_embeddings) > 0:
+            from sklearn.metrics.pairwise import cosine_similarity
             try:
                 concept_embeddings = self.model.encode(needs_semantic_check)
             except Exception as e:
