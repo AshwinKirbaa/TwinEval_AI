@@ -91,10 +91,6 @@ const StudentAnalytics = {
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:2rem;">
         <div class="glass-card padding-lg"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;"><div><h3 style="font-size:1.1rem;">Score Trend Over Semester</h3><p style="font-size:.82rem;color:var(--text-muted);">Evaluated answer sheets in chronological order</p></div><span class="badge badge-primary">${this.details.length} Results</span></div>${this.trendChart()}</div>
         <div class="glass-card padding-lg"><div style="text-align:center;margin-bottom:1rem;"><h3 style="font-size:1.1rem;">Bloom's Skill Mastery</h3><p style="font-size:.82rem;color:var(--text-muted);">Cognitive depth by evaluated questions</p></div>${this.bloomBars(data.bloomAverages)}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
-        ${this.conceptCard('Strongest Concepts','fa-arrow-trend-up','var(--success)','var(--success-light)',data.strongest,'No concepts have reached 90% mastery yet.',true)}
-        ${this.conceptCard('Recommended Areas to Review','fa-lightbulb','var(--warning)','var(--warning-light)',data.review,'No weak areas were identified.',false)}
       </div>`;
     document.getElementById('exportAnalyticsBtn')?.addEventListener('click', () => this.exportCsv());
   },
