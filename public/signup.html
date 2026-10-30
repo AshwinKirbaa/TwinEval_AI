@@ -148,16 +148,34 @@
     let selectedRole = 'Student';
     let signupSubmitting = false;
 
+    function selectSignupRole(role) {
+      selectedRole = role === 'Teacher' ? 'Teacher' : 'Student';
+      document.querySelectorAll('.role-btn').forEach(button => {
+        button.classList.toggle('active', button.getAttribute('data-role') === selectedRole);
+      });
+      document.getElementById('studentFieldsRow').style.display = selectedRole === 'Teacher' ? 'none' : 'grid';
+    }
+
     document.querySelectorAll('.role-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedRole = btn.getAttribute('data-role');
-
-        const studentFieldsRow = document.getElementById('studentFieldsRow');
-        studentFieldsRow.style.display = selectedRole === 'Teacher' ? 'none' : 'grid';
+        selectSignupRole(btn.getAttribute('data-role'));
       });
     });
+
+    // A first-time Google user arrives here after the backend has verified
+    // the Google ID token. Carry only the display profile needed to reduce
+    // duplicate typing; the normal signup validation still applies.
+    try {
+      const googleSignup = JSON.parse(sessionStorage.getItem('twineval_google_signup') || 'null');
+      if (googleSignup?.email) {
+        document.getElementById('fullName').value = googleSignup.name || '';
+        document.getElementById('signupEmail').value = googleSignup.email;
+        selectSignupRole(googleSignup.role);
+        sessionStorage.removeItem('twineval_google_signup');
+      }
+    } catch (error) {
+      sessionStorage.removeItem('twineval_google_signup');
+    }
 
     async function handleSignup(e) {
       e.preventDefault();

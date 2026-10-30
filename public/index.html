@@ -166,6 +166,15 @@
         });
         finishAuthentication(res.data, 'Google');
       } catch (error) {
+        if (error.data?.code === 'REGISTRATION_REQUIRED' && error.data?.data) {
+          sessionStorage.setItem('twineval_google_signup', JSON.stringify({
+            ...error.data.data,
+            role: selectedRole
+          }));
+          TwinEvalApp.showToast('Create your TwinEval account', 'Your Google name and Gmail will be filled in automatically.', 'info');
+          setTimeout(() => { window.location.href = 'signup.html?source=google'; }, 500);
+          return;
+        }
         TwinEvalApp.showToast('Google Sign-In Failed', error.message || 'Could not sign in with Google.', 'danger');
       }
     }

@@ -201,7 +201,12 @@ const googleLogin = async (req, res, next) => {
                 return res.status(409).json({
                     success: false,
                     code: 'REGISTRATION_REQUIRED',
-                    message: 'No TwinEval account uses this Gmail address. Create your account first, then continue with Google.'
+                    message: 'No TwinEval account uses this Gmail address. Complete the pre-filled signup form to continue.',
+                    data: {
+                        name: String(profile?.name || '').trim(),
+                        email,
+                        picture: String(profile?.picture || '').trim()
+                    }
                 });
             }
             if (user.google_subject && user.google_subject !== subject) {
