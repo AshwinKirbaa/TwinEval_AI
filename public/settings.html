@@ -205,9 +205,35 @@
           </button>
         </div>
 
+        <div class="glass-card danger-zone" style="padding: 1.5rem 2rem; margin-top: 1.5rem;">
+          <div class="danger-zone-copy">
+            <div class="setting-title">Delete account permanently</div>
+            <div class="setting-desc">Remove your account and all associated submissions, results, plans, and owned papers. This cannot be undone.</div>
+          </div>
+          <button type="button" class="btn btn-danger btn-md" id="openDeleteAccountBtn">
+            <i class="fa-solid fa-user-xmark"></i> Delete Account
+          </button>
+        </div>
+
       </div>
     </main>
   </div>
+
+  <dialog id="deleteAccountDialog" class="delete-account-dialog">
+    <form method="dialog" id="deleteAccountForm">
+      <div class="delete-dialog-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h2>Delete your account?</h2>
+      <p>This permanently removes your account and associated data. This action cannot be undone.</p>
+      <label for="deleteAccountPassword" class="form-label">Confirm your password</label>
+      <input type="password" id="deleteAccountPassword" class="form-input" autocomplete="current-password" required>
+      <label for="deleteAccountConfirmation" class="form-label">Type <strong>DELETE</strong> to confirm</label>
+      <input type="text" id="deleteAccountConfirmation" class="form-input" autocomplete="off" required>
+      <div class="delete-dialog-actions">
+        <button type="button" class="btn btn-secondary" id="cancelDeleteAccountBtn">Cancel</button>
+        <button type="submit" class="btn btn-danger" id="confirmDeleteAccountBtn">Delete Permanently</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="js/script.js"></script>
   <script src="js/settings.js"></script>

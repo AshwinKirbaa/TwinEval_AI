@@ -1,6 +1,14 @@
 const { body, param, query, validationResult } = require('express-validator');
 const { sendError } = require('../utils/responseHandler');
 
+const isGmailAddress = value => {
+    const domain = String(value || '').trim().toLowerCase().split('@')[1];
+    if (domain !== 'gmail.com') {
+        throw new Error('A Gmail address ending in @gmail.com is required');
+    }
+    return true;
+};
+
 /**
  * Middleware to check validation results and handle errors
  */
@@ -18,7 +26,8 @@ const validate = (req, res, next) => {
  */
 const validateRegistration = [
     body('name').trim().notEmpty().withMessage('Name is required'),
-    body('email').trim().isEmail().withMessage('Valid email address is required').normalizeEmail(),
+    body('email').trim().isEmail().withMessage('Valid email address is required').bail()
+        .custom(isGmailAddress).normalizeEmail(),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
     body('role').optional().isIn(['admin', 'teacher', 'student']).withMessage('Role must be admin, teacher, or student'),
     validate
@@ -28,7 +37,8 @@ const validateRegistration = [
  * Validation rules for user login
  */
 const validateLogin = [
-    body('email').trim().isEmail().withMessage('Valid email address is required').normalizeEmail(),
+    body('email').trim().isEmail().withMessage('Valid email address is required').bail()
+        .custom(isGmailAddress).normalizeEmail(),
     body('password').notEmpty().withMessage('Password is required'),
     validate
 ];

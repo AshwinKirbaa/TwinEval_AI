@@ -31,6 +31,13 @@ class UserModel {
         return rows[0] || null;
     }
 
+    /** Internal authentication lookup; unlike findById, includes password. */
+    static async findAuthById(id) {
+        const sql = `SELECT * FROM Users WHERE user_id = ? LIMIT 1`;
+        const [rows] = await pool.execute(sql, [id]);
+        return rows[0] || null;
+    }
+
     /**
      * Persist the editable profile fields for the authenticated user.
      * The caller supplies only values from the verified session; user_id is
@@ -83,6 +90,28 @@ class UserModel {
         const sql = `DELETE FROM Users WHERE user_id = ?`;
         const [result] = await pool.execute(sql, [id]);
         return result.affectedRows > 0;
+    }
+
+    /**
+     * Permanently remove an account and all data owned by it. Deleting a
+     * linked Student row first activates the existing ON DELETE CASCADE
+     * rules for submissions, results, plans, and evaluations. Teacher-owned
+     * papers cascade when the Users row is deleted.
+     */
+    static async deleteAccount(id) {
+        const conn = await pool.getConnection();
+        try {
+            await conn.beginTransaction();
+            await conn.execute('DELETE FROM Student WHERE user_id = ?', [id]);
+            const [result] = await conn.execute('DELETE FROM Users WHERE user_id = ?', [id]);
+            await conn.commit();
+            return result.affectedRows > 0;
+        } catch (error) {
+            await conn.rollback();
+            throw error;
+        } finally {
+            conn.release();
+        }
     }
 }
 

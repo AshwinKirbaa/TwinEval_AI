@@ -110,3 +110,37 @@
   accent-color: var(--primary);
   cursor: pointer;
 }
+
+.danger-zone {
+  border: 1px solid #fecaca;
+  background: #fffafa;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.danger-zone-copy { flex: 1; }
+.danger-zone .setting-title { color: #b91c1c; margin-bottom: 0.3rem; }
+.btn-danger { background: #dc2626; border-color: #dc2626; color: #fff; }
+.btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+
+.delete-account-dialog {
+  width: min(460px, calc(100vw - 32px));
+  border: 0;
+  border-radius: 18px;
+  padding: 0;
+  box-shadow: 0 24px 70px rgba(20, 20, 30, 0.25);
+}
+.delete-account-dialog::backdrop { background: rgba(20, 20, 30, 0.55); }
+.delete-account-dialog form { padding: 2rem; }
+.delete-account-dialog h2 { margin: 0 0 0.6rem; }
+.delete-account-dialog p { color: var(--text-muted); line-height: 1.6; margin-bottom: 1.4rem; }
+.delete-account-dialog .form-label { display: block; margin-top: 1rem; }
+.delete-dialog-icon { color: #dc2626; font-size: 2rem; margin-bottom: 0.8rem; }
+.delete-dialog-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+
+@media (max-width: 640px) {
+  .danger-zone { align-items: stretch; flex-direction: column; }
+  .delete-dialog-actions { flex-direction: column-reverse; }
+}

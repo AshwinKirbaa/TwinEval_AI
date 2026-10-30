@@ -47,4 +47,11 @@ router.put('/profile', verifyToken, authController.updateProfile);
  */
 router.post('/avatar', verifyToken, upload.single('avatar'), authController.updateAvatar);
 
+/**
+ * @route   DELETE /auth/account
+ * @desc    Permanently delete the currently authenticated account
+ * @access  Private (JWT Protected, password confirmation required)
+ */
+router.delete('/account', verifyToken, authController.deleteAccount);
+
 module.exports = router;

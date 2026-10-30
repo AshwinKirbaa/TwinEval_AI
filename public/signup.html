@@ -186,7 +186,15 @@
       btn.disabled = true;
 
       const name = document.getElementById('fullName').value;
-      const email = document.getElementById('signupEmail').value;
+      const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+      if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
+        errorBox.textContent = 'Enter a Gmail address ending in @gmail.com. You will need to verify it from your inbox.';
+        errorBox.hidden = false;
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        signupSubmitting = false;
+        return;
+      }
       const college = document.getElementById('college').value;
       const department = document.getElementById('department').value;
 

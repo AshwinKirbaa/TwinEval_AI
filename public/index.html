@@ -157,10 +157,15 @@
 
     async function handleLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
       const password = document.getElementById('loginPassword').value;
       const btn = document.getElementById('submitLoginBtn');
       const originalHtml = btn.innerHTML;
+
+      if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
+        TwinEvalApp.showToast('Gmail Required', 'Enter the verified Gmail address used to create your account.', 'danger');
+        return;
+      }
 
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Authenticating...`;
       btn.disabled = true;

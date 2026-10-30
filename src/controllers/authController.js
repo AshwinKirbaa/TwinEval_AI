@@ -6,6 +6,10 @@ const StudentModel = require('../models/studentModel');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 const { sendVerificationEmail, isConfigured: isEmailConfigured } = require('../services/emailService');
 
+function isGmailAddress(email) {
+    return /^[^\s@]+@gmail\.com$/i.test(String(email || '').trim());
+}
+
 /**
  * Register new user
  * POST /auth/register
@@ -16,6 +20,13 @@ const { sendVerificationEmail, isConfigured: isEmailConfigured } = require('../s
 const register = async (req, res, next) => {
     try {
         const { name, email, password, role, roll_no, department, semester, college = '', year = '' } = req.body;
+
+        // Syntax validation happens in middleware; keep this defense here as
+        // well so registration can never be opened to unverified domains if
+        // the controller is reused from another route later.
+        if (!isGmailAddress(email)) {
+            return sendError(res, 'A Gmail address ending in @gmail.com is required.', 400);
+        }
 
         // Check if user already exists
         const existingUser = await UserModel.findByEmail(email);
@@ -97,20 +108,27 @@ const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
+        if (!isGmailAddress(email)) {
+            return sendError(res, 'A Gmail address ending in @gmail.com is required.', 400);
+        }
+
         // Find user by email
         const user = await UserModel.findByEmail(email);
         if (!user) {
             return sendError(res, 'Invalid credentials. User not found.', 401);
         }
 
-        if (!user.email_verified_at) {
-            return sendError(res, 'Please verify your email address before signing in. Check your inbox for the verification link.', 403);
-        }
-
         // Verify password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return sendError(res, 'Invalid credentials. Password incorrect.', 401);
+        }
+
+        // A correctly formatted Gmail address is not proof that the inbox
+        // exists or belongs to this user. Only the one-time link sent to that
+        // inbox establishes ownership.
+        if (!user.email_verified_at) {
+            return sendError(res, 'Please verify your Gmail address before signing in. Check your inbox for the verification link.', 403);
         }
 
         let studentId = null;
@@ -242,11 +260,39 @@ const updateAvatar = async (req, res, next) => {
     }
 };
 
+/** Permanently delete the authenticated user's account after re-authentication. */
+const deleteAccount = async (req, res, next) => {
+    try {
+        const password = String(req.body.password || '');
+        if (!password) {
+            return sendError(res, 'Enter your password to delete your account.', 400);
+        }
+
+        const user = await UserModel.findAuthById(req.user.user_id);
+        if (!user || Number(user.user_id) !== Number(req.user.user_id)) {
+            return sendError(res, 'Account not found.', 404);
+        }
+
+        const passwordMatches = await bcrypt.compare(password, user.password);
+        if (!passwordMatches) {
+            return sendError(res, 'Password is incorrect. Your account was not deleted.', 401);
+        }
+
+        const deleted = await UserModel.deleteAccount(user.user_id);
+        if (!deleted) return sendError(res, 'Account could not be deleted.', 500);
+
+        return sendSuccess(res, 'Your account and associated data were permanently deleted.');
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     register,
     login,
     getProfile,
     verifyEmail,
     updateProfile,
-    updateAvatar
+    updateAvatar,
+    deleteAccount
 };
