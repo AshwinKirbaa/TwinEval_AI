@@ -1,11 +1,13 @@
 # TwinEval deployment: Vercel + Render + Supabase
 
-TwinEval uses four hosted pieces:
+TwinEval's local-AI deployment uses three pieces:
 
 - Vercel: static browser frontend
 - Render `twineval-api`: Node/Express API
-- Render `twineval-ai`: Python AI/OCR service using Gemini
 - Supabase: PostgreSQL database and persistent uploaded-file storage
+
+AI/OCR runs on each user's Windows computer through `start-ai-windows.bat`
+and local Ollama at `http://127.0.0.1:8000`.
 
 ## 1. Create Supabase resources
 
@@ -16,12 +18,7 @@ TwinEval uses four hosted pieces:
    - Project URL
    - `service_role` key (server secret; never put this in Vercel or browser code)
 
-## 2. Create the Gemini key
-
-Create an API key in Google AI Studio. The key belongs only in the Render
-`twineval-ai` environment as `GEMINI_API_KEY`.
-
-## 3. Deploy both Render services
+## 2. Deploy the Render API
 
 In Render choose **New > Blueprint**, connect the GitHub repository, and use
 the root `render.yaml`. Enter the requested secret values:
@@ -38,11 +35,9 @@ the root `render.yaml`. Enter the requested secret values:
 - `SMTP_FROM`: for example `TwinEval AI <twinevallogin@gmail.com>`
 - `AI_SERVICE_URL`: public Render AI URL, for example `https://twineval-ai.onrender.com`
 
-### `twineval-ai`
-
-- `GEMINI_API_KEY`: Google AI Studio key
-
-After both deploy, confirm that `/health` returns JSON on each Render URL.
+Confirm that `/health` returns JSON on the Render API URL. The existing
+`twineval-ai` Render service can be suspended because the browser no longer
+uses it.
 
 ## 4. Deploy the frontend to Vercel
 
@@ -50,11 +45,19 @@ Import the same GitHub repository into Vercel. `vercel.json` supplies the build
 command and output folder. Add these build environment variables:
 
 - `TWINEVAL_API_BASE=https://twineval-api.onrender.com`
-- `TWINEVAL_AI_URL=https://twineval-ai.onrender.com`
+
+No hosted AI URL is required; the build fixes AI requests to
+`http://127.0.0.1:8000`.
 
 Deploy, then copy the final Vercel URL back into Render as `PUBLIC_APP_URL`.
 
-## 5. Update Google OAuth
+## 5. Start AI on every client computer
+
+Install Ollama, then run `start-ai-windows.bat` from the TwinEval project on
+each computer that will generate papers or evaluate answers. Confirm
+`http://127.0.0.1:8000/health` opens before using an AI workflow.
+
+## 6. Update Google OAuth
 
 In Google Cloud Console, open the OAuth Web Client and add the exact Vercel
 origin under **Authorized JavaScript origins**, such as:

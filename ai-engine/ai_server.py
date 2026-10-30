@@ -41,6 +41,14 @@ app = Flask(__name__)
 CORS(app)  # the Node backend runs on a different port; allow it to call this service
 
 
+@app.after_request
+def allow_local_private_network(response):
+    # Chromium may preflight requests from the public HTTPS Vercel site to
+    # this loopback service under Private Network Access rules.
+    response.headers["Access-Control-Allow-Private-Network"] = "true"
+    return response
+
+
 def _error(message, status=400):
     return jsonify({"success": False, "message": message}), status
 
