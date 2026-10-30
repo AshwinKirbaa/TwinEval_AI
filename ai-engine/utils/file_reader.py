@@ -209,7 +209,7 @@ def extract_text_from_image_path(image_path: str, model: str = "gemma3:4b") -> s
         except Exception as e:
             errors.append(f"Ollama OCR Error: {e}")
 
-    if os.getenv("GEMINI_API_KEY"):
+    if os.environ.get("AI_PROVIDER", "ollama").strip().lower() == "gemini":
         try:
             from utils.gemini_ocr import extract_handwritten_text
 

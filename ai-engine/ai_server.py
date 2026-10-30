@@ -232,14 +232,12 @@ def create_generate_paper_job():
                   error="No question text found -- provide raw_text or upload a readable question paper file.")
         return jsonify({"success": True, "job_id": job_id})
 
-    # Answer-key generation always has a working fallback path (Gemini
-    # first if GEMINI_API_KEY is set, then local Ollama) -- but if
-    # Gemini isn't configured, Ollama is the ONLY path, so fail fast
+    # In local mode Ollama is the only generation path, so fail fast
     # here with a clear, actionable message instead of silently
     # discovering it's unreachable partway through generating keys for
     # question 1 of N (which, before the ollama_client timeout fix,
     # could otherwise hang the whole job with no feedback at all).
-    if not os.environ.get("GEMINI_API_KEY"):
+    if os.environ.get("AI_PROVIDER", "ollama").strip().lower() == "ollama":
         ok, msg = check_ollama_ready(model=TEXT_MODEL)
         if not ok:
             _set_job(job_id, done=True, error=msg)

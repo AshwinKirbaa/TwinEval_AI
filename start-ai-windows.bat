@@ -28,6 +28,7 @@ if errorlevel 1 goto :error
 
 set AI_SERVICE_HOST=127.0.0.1
 set AI_SERVICE_PORT=8000
+set AI_PROVIDER=ollama
 if not defined AI_TEXT_MODEL set AI_TEXT_MODEL=qwen3:4b-instruct
 if not defined AI_VISION_MODEL set AI_VISION_MODEL=gemma3:4b
 if not defined OLLAMA_ANSWER_KEY_TIMEOUT_SECONDS set OLLAMA_ANSWER_KEY_TIMEOUT_SECONDS=240

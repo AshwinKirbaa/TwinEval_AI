@@ -8,7 +8,11 @@
  */
 window.TwinEvalLocalAI = (() => {
     const defaultUrl = 'http://127.0.0.1:8000';
-    const configuredUrl = (window.TWINEVAL_AI_URL || localStorage.getItem('twineval_ai_url') || defaultUrl).replace(/\/$/, '');
+    // Local-first deployment: AI work always stays on this user's computer.
+    // A per-browser override remains available for advanced LAN setups, but a
+    // cloud build variable can no longer silently route private documents to
+    // a hosted model.
+    const configuredUrl = (localStorage.getItem('twineval_ai_url') || defaultUrl).replace(/\/$/, '');
 
     async function request(path, options = {}) {
         let response;

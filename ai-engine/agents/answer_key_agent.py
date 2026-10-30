@@ -137,7 +137,7 @@ class AnswerKeyAgent:
             else self._build_subjective_prompt(question_text, topic, max_marks)
         )
 
-        if os.getenv("GEMINI_API_KEY"):
+        if os.environ.get("AI_PROVIDER", "ollama").strip().lower() == "gemini":
             try:
                 return self._generate_gemini(prompt, max_marks)
             except Exception as e:
