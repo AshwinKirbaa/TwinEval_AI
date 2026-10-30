@@ -1,5 +1,6 @@
 # Dependency directories
 node_modules/
+dist/
 ai-engine/venv/
 ai-engine/__pycache__/
 ai-engine/agents/__pycache__/

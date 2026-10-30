@@ -31,6 +31,8 @@ the whole run over one slow/broken call.
 """
 import os
 import time
+import mimetypes
+from pathlib import Path
 
 import ollama
 
@@ -41,6 +43,53 @@ DEFAULT_RETRIES = int(os.environ.get("OLLAMA_MAX_RETRIES", "1"))
 # so repeated calls with the default timeout reuse the same underlying
 # httpx.Client instead of reconnecting every time.
 _clients = {}
+
+
+def _provider():
+    return os.environ.get("AI_PROVIDER", "ollama").strip().lower()
+
+
+def _gemini_chat(model, messages, options=None, format=None):
+    """Call Gemini while preserving the small Ollama response contract used
+    by the existing agents. Images supplied as Ollama-style file paths are
+    converted to inline Gemini parts."""
+    from google import genai
+    from google.genai import types
+
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("AI_PROVIDER=gemini requires GEMINI_API_KEY.")
+
+    configured_model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash").strip()
+    selected_model = configured_model or model
+    prompt_sections = []
+    image_parts = []
+    for message in messages or []:
+        role = str(message.get("role", "user")).upper()
+        prompt_sections.append(f"{role}: {message.get('content', '')}")
+        for image_path in message.get("images", []) or []:
+            path = Path(image_path)
+            mime_type = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+            image_parts.append(types.Part.from_bytes(data=path.read_bytes(), mime_type=mime_type))
+
+    opts = options or {}
+    config_kwargs = {
+        "temperature": float(opts.get("temperature", 0.2)),
+        "top_p": float(opts.get("top_p", 0.9)),
+        "max_output_tokens": int(opts.get("num_predict", 8192)),
+    }
+    if format == "json":
+        config_kwargs["response_mime_type"] = "application/json"
+
+    response = genai.Client(api_key=api_key).models.generate_content(
+        model=selected_model,
+        contents=["\n\n".join(prompt_sections), *image_parts],
+        config=types.GenerateContentConfig(**config_kwargs),
+    )
+    content = (response.text or "").strip()
+    if not content:
+        raise RuntimeError("Gemini returned an empty response.")
+    return {"message": {"role": "assistant", "content": content}}
 
 
 def _client(timeout: float):
@@ -69,6 +118,9 @@ def chat(model, messages, options=None, timeout=None, retries=None, format=None)
 
     Returns the same response object `ollama.chat()` returns.
     """
+    if _provider() == "gemini":
+        return _gemini_chat(model, messages, options=options, format=format)
+
     timeout = DEFAULT_TIMEOUT if timeout is None else timeout
     retries = DEFAULT_RETRIES if retries is None else retries
     client = _client(timeout)
@@ -102,11 +154,16 @@ def pull(model, timeout=None):
     """Timeout-bounded replacement for `ollama.pull(...)`. Model pulls
     can legitimately take a while (downloading multiple GB), so this
     uses a much longer default timeout than chat()."""
+    if _provider() == "gemini":
+        return {"status": "Hosted Gemini models do not require downloading."}
     timeout = timeout if timeout is not None else float(os.environ.get("OLLAMA_PULL_TIMEOUT_SECONDS", "1800"))
     return _client(timeout).pull(model)
 
 
 def list_models(timeout=None):
     """Timeout-bounded replacement for `ollama.list()`."""
+    if _provider() == "gemini":
+        model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        return {"models": [{"model": model, "name": model}]}
     timeout = timeout if timeout is not None else min(DEFAULT_TIMEOUT, 15.0)
     return _client(timeout).list()

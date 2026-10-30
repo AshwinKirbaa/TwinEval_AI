@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build:frontend": "node scripts/build-frontend.js",
     "setup": "node scripts/setup.js",
     "import:mysql": "node scripts/import-mysql.js"
   },

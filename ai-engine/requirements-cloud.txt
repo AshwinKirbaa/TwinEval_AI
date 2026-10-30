@@ -1,0 +1,15 @@
+flask
+flask-cors
+gunicorn
+google-genai
+ollama
+pillow
+pymupdf
+python-dotenv
+python-docx
+opencv-python-headless
+numpy
+pandas
+sentence-transformers
+scikit-learn
+reportlab

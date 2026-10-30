@@ -116,6 +116,7 @@ def health():
     return jsonify({
         "success": True,
         "ollama_ready": text_ok and vision_ok,
+        "provider": os.environ.get("AI_PROVIDER", "ollama"),
         "text_model": TEXT_MODEL,
         "vision_model": VISION_MODEL,
         "message": text_msg if not text_ok else vision_msg

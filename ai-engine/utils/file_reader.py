@@ -284,6 +284,11 @@ def check_ollama_ready(model: str = "gemma3:4b"):
     pulled. Returns (ok: bool, message: str) so callers can surface a
     friendly, actionable error instead of a raw stack trace.
     """
+    if os.environ.get("AI_PROVIDER", "ollama").strip().lower() == "gemini":
+        if not os.environ.get("GEMINI_API_KEY", "").strip():
+            return False, "Hosted Gemini AI is selected, but GEMINI_API_KEY is missing."
+        return True, "Hosted Gemini AI is ready."
+
     try:
         import ollama
     except ImportError:

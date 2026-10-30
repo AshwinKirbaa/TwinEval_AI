@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: twineval-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PUBLIC_APP_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: twineval-ai
+          property: host
+
+  - type: web
+    name: twineval-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r ai-engine/requirements-cloud.txt
+    startCommand: gunicorn --chdir ai-engine --bind 0.0.0.0:$PORT --timeout 300 ai_server:app
+    healthCheckPath: /health
+    envVars:
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_TEXT_MODEL
+        value: gemini-2.5-flash
+      - key: AI_VISION_MODEL
+        value: gemini-2.5-flash
