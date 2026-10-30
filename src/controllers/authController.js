@@ -324,7 +324,8 @@ const updateAvatar = async (req, res, next) => {
         if (!req.file) {
             return sendError(res, 'No image file was uploaded.', 400);
         }
-        const avatarUrl = `/uploads/${req.file.filename}`;
+        const { persistUpload } = require('../services/storageService');
+        const avatarUrl = await persistUpload(req.file, 'avatars');
         const updated = await UserModel.updateAvatar(req.user.user_id, avatarUrl);
         if (!updated) {
             return sendError(res, 'Could not update profile photo.', 500);

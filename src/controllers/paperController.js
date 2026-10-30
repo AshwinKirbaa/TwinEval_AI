@@ -1,6 +1,6 @@
-const fs = require('fs');
 const QuestionPaperModel = require('../models/questionPaperModel');
 const aiBridge = require('../services/aiBridgeService');
+const { persistUpload } = require('../services/storageService');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 /**
@@ -18,7 +18,7 @@ const startGenerationJob = async (req, res, next) => {
         let fileBuffer = null;
         let filename = null;
         if (req.file) {
-            fileBuffer = fs.readFileSync(req.file.path);
+            fileBuffer = req.file.buffer;
             filename = req.file.originalname;
         } else if (!raw_text || !raw_text.trim()) {
             return sendError(res, 'Provide raw_text or upload a question paper file.', 400);
@@ -110,8 +110,8 @@ const createPaper = async (req, res, next) => {
         let sourceFilePath = null;
 
         if (req.file) {
-            sourceFilePath = `/uploads/${req.file.filename}`;
-            const buffer = fs.readFileSync(req.file.path);
+            sourceFilePath = await persistUpload(req.file, 'question-papers');
+            const buffer = req.file.buffer;
             questionPaperText = await aiBridge.extractText(buffer, req.file.originalname);
         }
 

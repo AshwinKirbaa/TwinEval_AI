@@ -1,8 +1,8 @@
-const fs = require('fs');
 const QuestionPaperModel = require('../models/questionPaperModel');
 const SubmissionModel = require('../models/submissionModel');
 const StudentModel = require('../models/studentModel');
 const aiBridge = require('../services/aiBridgeService');
+const { persistUpload } = require('../services/storageService');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 /**
@@ -36,7 +36,7 @@ const startEvaluationJob = async (req, res, next) => {
         if (!paper) return sendError(res, 'Question paper not found.', 404);
         if (!paper.questions.length) return sendError(res, 'This question paper has no questions yet.', 400);
 
-        const answerFilePath = `/uploads/${req.file.filename}`;
+        const answerFilePath = await persistUpload(req.file, 'answer-sheets');
         submissionId = await SubmissionModel.createSubmission({
             paper_id, student_id: student.student_id, answer_file_path: answerFilePath
         });
@@ -64,7 +64,7 @@ const startEvaluationJob = async (req, res, next) => {
             }, 202);
         }
 
-        const buffer = fs.readFileSync(req.file.path);
+        const buffer = req.file.buffer;
         const jobId = await aiBridge.createSubmissionEvaluationJob({
             fileBuffer: buffer, filename: req.file.originalname,
             questions: aiQuestions, answerKeys: answerKeysByAiId,
@@ -197,13 +197,13 @@ const createSubmission = async (req, res, next) => {
         if (!paper) return sendError(res, 'Question paper not found.', 404);
         if (!paper.questions.length) return sendError(res, 'This question paper has no questions yet.', 400);
 
-        const answerFilePath = `/uploads/${req.file.filename}`;
+        const answerFilePath = await persistUpload(req.file, 'answer-sheets');
         submissionId = await SubmissionModel.createSubmission({
             paper_id, student_id: student.student_id, answer_file_path: answerFilePath
         });
 
         // 1. OCR the uploaded answer sheet.
-        const buffer = fs.readFileSync(req.file.path);
+        const buffer = req.file.buffer;
         const rawText = await aiBridge.extractText(buffer, req.file.originalname);
         if (!rawText || !rawText.trim()) {
             await SubmissionModel.markFailed(submissionId, 'No text could be extracted from the uploaded answer sheet.');
