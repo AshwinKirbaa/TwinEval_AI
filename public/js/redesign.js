@@ -79,9 +79,31 @@
           const labels = {'teacher-dashboard.html':'Dashboard','teacher-upload.html':'Question Papers','teacher-review.html':'Evaluations','teacher-analytics.html':'Analytics'};
           if (labels[href] && span) span.textContent = labels[href];
         } else {
-          const labels = {'student-dashboard.html':'Dashboard','upload-answer.html':'Upload Answer','results.html':'Results','analytics.html':'Analytics'};
+          const labels = {'student-dashboard.html':'Dashboard','upload-answer.html':'Upload Answer','feedback.html':'AI Feedback','results.html':'Results','analytics.html':'Analytics'};
           if (labels[href] && span) span.textContent = labels[href];
         }
+      });
+
+      // Several student pages were created before the AI Feedback workspace
+      // existed, so their static sidebars do not contain that destination.
+      // Add it here once so every student page has the same navigation.
+      if (!isTeacher && !nav.querySelector('a[href="feedback.html"]')) {
+        const feedbackLink = document.createElement('a');
+        feedbackLink.href = 'feedback.html';
+        feedbackLink.className = 'nav-link';
+        feedbackLink.innerHTML = '<i class="fa-solid fa-comment-dots nav-icon"></i><span>AI Feedback</span>';
+
+        const analyticsLink = nav.querySelector('a[href="analytics.html"]');
+        if (analyticsLink) nav.insertBefore(feedbackLink, analyticsLink);
+        else nav.appendChild(feedbackLink);
+      }
+
+      // The link can be injected after the shared app has initialized active
+      // links, so normalize the active state here as well.
+      const currentPage = (location.pathname.split('/').pop() || 'student-dashboard.html').toLowerCase();
+      nav.querySelectorAll('a.nav-link').forEach(a => {
+        const href = (a.getAttribute('href') || '').split('?')[0].toLowerCase();
+        a.classList.toggle('active', href === currentPage);
       });
 
       nav.querySelectorAll('.nav-section-title').forEach(s => {
