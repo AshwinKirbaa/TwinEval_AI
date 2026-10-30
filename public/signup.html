@@ -147,6 +147,7 @@
   <script>
     let selectedRole = 'Student';
     let signupSubmitting = false;
+    let googleSignupCredential = '';
 
     function selectSignupRole(role) {
       selectedRole = role === 'Teacher' ? 'Teacher' : 'Student';
@@ -171,6 +172,7 @@
         document.getElementById('fullName').value = googleSignup.name || '';
         document.getElementById('signupEmail').value = googleSignup.email;
         selectSignupRole(googleSignup.role);
+        googleSignupCredential = googleSignup.credential || '';
         sessionStorage.removeItem('twineval_google_signup');
       }
     } catch (error) {
@@ -220,6 +222,7 @@
         name, email, password: pw, college,
         role: isStudent ? 'student' : 'teacher',
       };
+      if (googleSignupCredential) payload.google_credential = googleSignupCredential;
       if (isStudent) {
         payload.department = department;
         payload.roll_no = document.getElementById('rollNumber').value.trim();
@@ -232,9 +235,19 @@
           body: JSON.stringify(payload)
         });
 
-        TwinEvalApp.showToast('Check your email', 'We sent a verification link to your email address. Verify it before signing in.', 'success');
-        btn.innerHTML = '<i class="fa-solid fa-envelope-circle-check"></i> Verification email sent';
-        setTimeout(() => { window.location.href = 'index.html'; }, 2400);
+        if (res.data.token) {
+          const serverRole = res.data.role === 'teacher' ? 'Teacher' : 'Student';
+          TwinEvalApp.setToken(res.data.token);
+          TwinEvalApp.setUser({ ...res.data, role: serverRole });
+          TwinEvalApp.showToast('Account created', 'Your verified Google account is ready.', 'success');
+          setTimeout(() => {
+            window.location.href = serverRole === 'Teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
+          }, 500);
+        } else {
+          TwinEvalApp.showToast('Check your email', 'We sent a verification link to your email address. Verify it before signing in.', 'success');
+          btn.innerHTML = '<i class="fa-solid fa-envelope-circle-check"></i> Verification email sent';
+          setTimeout(() => { window.location.href = 'index.html'; }, 2400);
+        }
       } catch (err) {
         const message = err.message || 'Something went wrong. Please try again.';
         errorBox.textContent = message;

@@ -11,6 +11,37 @@ function isGmailAddress(email) {
     return /^[^\s@]+@gmail\.com$/i.test(String(email || '').trim());
 }
 
+function normalizeGmailAddress(email) {
+    const value = String(email || '').trim().toLowerCase();
+    const [local, domain] = value.split('@');
+    return domain === 'gmail.com' ? `${local.replace(/\./g, '')}@gmail.com` : value;
+}
+
+async function verifyGoogleCredential(credential) {
+    const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+    if (!clientId) {
+        const error = new Error('Google Sign-In is not configured on this server.');
+        error.statusCode = 503;
+        throw error;
+    }
+    try {
+        const ticket = await new OAuth2Client(clientId).verifyIdToken({ idToken: credential, audience: clientId });
+        const profile = ticket.getPayload();
+        const email = normalizeGmailAddress(profile?.email);
+        if (!profile?.sub || !profile?.email_verified || !isGmailAddress(email)) {
+            const error = new Error('Use a verified @gmail.com Google account.');
+            error.statusCode = 403;
+            throw error;
+        }
+        return { profile, email, subject: String(profile.sub) };
+    } catch (error) {
+        if (error.statusCode) throw error;
+        const invalid = new Error('Google Sign-In expired or was invalid. Please try again.');
+        invalid.statusCode = 401;
+        throw invalid;
+    }
+}
+
 function createSessionToken(user, studentId = null) {
     return jwt.sign(
         { user_id: user.user_id, email: user.email, name: user.name, role: user.role, student_id: studentId },
@@ -28,7 +59,18 @@ function createSessionToken(user, studentId = null) {
  */
 const register = async (req, res, next) => {
     try {
-        const { name, email, password, role, roll_no, department, semester, college = '', year = '' } = req.body;
+        const { name, email, password, role, roll_no, department, semester, college = '', year = '', google_credential } = req.body;
+
+        // A signup reached from "Continue with Google" already carries a
+        // cryptographically verified Gmail identity. Re-verify the ID token
+        // server-side and skip the redundant SMTP round-trip.
+        let googleIdentity = null;
+        if (google_credential) {
+            googleIdentity = await verifyGoogleCredential(String(google_credential));
+            if (normalizeGmailAddress(email) !== googleIdentity.email) {
+                return sendError(res, 'The signup Gmail does not match the selected Google account.', 400);
+            }
+        }
 
         // Syntax validation happens in middleware; keep this defense here as
         // well so registration can never be opened to unverified domains if
@@ -55,13 +97,13 @@ const register = async (req, res, next) => {
             }
         }
 
-        if (!isEmailConfigured()) {
+        if (!googleIdentity && !isEmailConfigured()) {
             return sendError(res, 'Your Gmail address is valid, but email delivery is not configured on the server. For Gmail, set SMTP_USER to your Gmail address and SMTP_PASS to a Gmail App Password (not your normal Gmail password).', 503);
         }
 
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        const verificationTokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
-        const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        const verificationToken = googleIdentity ? null : crypto.randomBytes(32).toString('hex');
+        const verificationTokenHash = verificationToken ? crypto.createHash('sha256').update(verificationToken).digest('hex') : null;
+        const verificationExpiresAt = verificationToken ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null;
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
@@ -85,6 +127,21 @@ const register = async (req, res, next) => {
             studentId = await StudentModel.create({
                 name, email, department, semester, roll_no, user_id: userId
             });
+        }
+
+        if (googleIdentity) {
+            await UserModel.linkGoogleIdentity(userId, googleIdentity.subject);
+            const user = await UserModel.findByGoogleSubject(googleIdentity.subject);
+            const token = createSessionToken(user, studentId);
+            return sendSuccess(res, 'Google account created and signed in successfully', {
+                user_id: userId,
+                student_id: studentId,
+                name,
+                email: googleIdentity.email,
+                role: resolvedRole,
+                avatar_url: googleIdentity.profile?.picture || null,
+                token
+            }, 201);
         }
 
         try {
@@ -175,24 +232,9 @@ const getGoogleConfig = (req, res) => {
 /** Verify a Google Identity Services ID token and create a TwinEval session. */
 const googleLogin = async (req, res, next) => {
     try {
-        const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
-        if (!clientId) return sendError(res, 'Google Sign-In is not configured on this server.', 503);
-
         const credential = String(req.body.credential || '');
         if (!credential) return sendError(res, 'Google did not provide a sign-in credential.', 400);
-
-        let ticket;
-        try {
-            ticket = await new OAuth2Client(clientId).verifyIdToken({ idToken: credential, audience: clientId });
-        } catch (verificationError) {
-            return sendError(res, 'Google Sign-In expired or was invalid. Please try again.', 401);
-        }
-        const profile = ticket.getPayload();
-        const email = String(profile?.email || '').trim().toLowerCase();
-        const subject = String(profile?.sub || '');
-        if (!subject || !profile?.email_verified || !isGmailAddress(email)) {
-            return sendError(res, 'Use a verified @gmail.com Google account.', 403);
-        }
+        const { profile, email, subject } = await verifyGoogleCredential(credential);
 
         let user = await UserModel.findByGoogleSubject(subject);
         if (!user) {
