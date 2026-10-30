@@ -84,7 +84,8 @@ const StudentModule = {
       const status=String(s.status||'').toLowerCase();
       const done=['evaluated','reviewed'].includes(status);
       const score=done && Number.isFinite(Number(s.percentage)) ? `${Number(s.percentage).toFixed(1)}%` : (status || 'Pending');
-      return `<div class="activity-item submission-table-row"><span class="activity-icon"><i class="fa-regular fa-file-lines"></i></span><div class="activity-copy"><strong>${this.escape(s.paper_title||'Answer sheet')}</strong><small>${this.escape(s.subject||'')} · ${this.formatDate(s.evaluated_at||s.submitted_at)}</small></div><span class="activity-score">${this.escape(score)}</span></div>`;
+      const href=done ? `feedback.html?submission_id=${encodeURIComponent(s.submission_id)}` : 'upload-answer.html';
+      return `<a href="${href}" class="activity-item submission-table-row" style="text-decoration:none;color:inherit;"><span class="activity-icon"><i class="fa-regular fa-file-lines"></i></span><div class="activity-copy"><strong>${this.escape(s.paper_title||'Answer sheet')}</strong><small>${this.escape(s.subject||'')} · ${this.formatDate(s.evaluated_at||s.submitted_at)}</small></div><span class="activity-score">${this.escape(score)} <i class="fa-solid fa-chevron-right" style="font-size:.65rem;margin-left:.35rem;"></i></span></a>`;
     }).join('');
   },
 
