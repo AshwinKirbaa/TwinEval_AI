@@ -56,7 +56,7 @@
         </div>
       </header>
 
-      <div class="content-body">
+      <div class="content-body" id="studentAnalyticsContent">
 
         <!-- Page Title Row -->
         <div class="margin-bottom-lg" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
@@ -169,15 +169,7 @@
   </div>
 
   <script src="js/script.js"></script>
-  <script src="js/student.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const user = JSON.parse(localStorage.getItem('twineval_user') || '{}');
-      document.querySelectorAll('.user-name-display').forEach(el => el.textContent = user.name || '{{student_name}}');
-      const exportBtn = document.getElementById('exportAnalyticsBtn');
-      if (exportBtn) exportBtn.addEventListener('click', () => TwinEvalApp.showToast('No Data', 'Complete an evaluation first to export analytics.', 'info'));
-    });
-  </script>
+  <script src="js/analytics.js"></script>
   <script src="js/redesign.js"></script>
 </body>
 </html>
