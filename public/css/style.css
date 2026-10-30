@@ -1394,6 +1394,12 @@ select.form-input {
   color: var(--text-muted);
 }
 
+.social-login { margin-top: 1.25rem; }
+.auth-divider { display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); font-size: 0.75rem; margin: 1rem 0; }
+.auth-divider::before, .auth-divider::after { content: ''; height: 1px; background: var(--border-subtle); flex: 1; }
+.google-signin-button { min-height: 44px; display: flex; justify-content: center; overflow: hidden; }
+.google-signin-button > div { max-width: 100%; }
+
 /* ==========================================================================
    RESPONSIVE LAYOUT & UI/UX REFINEMENT SYSTEM
    4-Tier Breakpoints: Desktop (1025px+), Laptop (769-1024px), Tablet (481-768px), Mobile (320-480px)

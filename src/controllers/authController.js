@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const UserModel = require('../models/userModel');
 const StudentModel = require('../models/studentModel');
 const { sendSuccess, sendError } = require('../utils/responseHandler');
@@ -8,6 +9,14 @@ const { sendVerificationEmail, isConfigured: isEmailConfigured } = require('../s
 
 function isGmailAddress(email) {
     return /^[^\s@]+@gmail\.com$/i.test(String(email || '').trim());
+}
+
+function createSessionToken(user, studentId = null) {
+    return jwt.sign(
+        { user_id: user.user_id, email: user.email, name: user.name, role: user.role, student_id: studentId },
+        process.env.JWT_SECRET || 'twineval_super_secret_jwt_key_2026_hackathon',
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
 }
 
 /**
@@ -138,11 +147,7 @@ const login = async (req, res, next) => {
         }
 
         // Generate JWT Token
-        const token = jwt.sign(
-            { user_id: user.user_id, email: user.email, name: user.name, role: user.role, student_id: studentId },
-            process.env.JWT_SECRET || 'twineval_super_secret_jwt_key_2026_hackathon',
-            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-        );
+        const token = createSessionToken(user, studentId);
 
         return sendSuccess(res, 'Login successful', {
             user_id: user.user_id,
@@ -151,6 +156,76 @@ const login = async (req, res, next) => {
             email: user.email,
             role: user.role,
             avatar_url: user.avatar_url || null,
+            token
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/** Public configuration used only to render Google's official button. */
+const getGoogleConfig = (req, res) => {
+    const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+    return sendSuccess(res, 'Google Sign-In configuration', {
+        enabled: Boolean(clientId),
+        client_id: clientId
+    });
+};
+
+/** Verify a Google Identity Services ID token and create a TwinEval session. */
+const googleLogin = async (req, res, next) => {
+    try {
+        const clientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+        if (!clientId) return sendError(res, 'Google Sign-In is not configured on this server.', 503);
+
+        const credential = String(req.body.credential || '');
+        if (!credential) return sendError(res, 'Google did not provide a sign-in credential.', 400);
+
+        let ticket;
+        try {
+            ticket = await new OAuth2Client(clientId).verifyIdToken({ idToken: credential, audience: clientId });
+        } catch (verificationError) {
+            return sendError(res, 'Google Sign-In expired or was invalid. Please try again.', 401);
+        }
+        const profile = ticket.getPayload();
+        const email = String(profile?.email || '').trim().toLowerCase();
+        const subject = String(profile?.sub || '');
+        if (!subject || !profile?.email_verified || !isGmailAddress(email)) {
+            return sendError(res, 'Use a verified @gmail.com Google account.', 403);
+        }
+
+        let user = await UserModel.findByGoogleSubject(subject);
+        if (!user) {
+            user = await UserModel.findByEmail(email);
+            if (!user) {
+                return res.status(409).json({
+                    success: false,
+                    code: 'REGISTRATION_REQUIRED',
+                    message: 'No TwinEval account uses this Gmail address. Create your account first, then continue with Google.'
+                });
+            }
+            if (user.google_subject && user.google_subject !== subject) {
+                return sendError(res, 'This Gmail address is already linked to another Google identity.', 409);
+            }
+            await UserModel.linkGoogleIdentity(user.user_id, subject);
+            user = await UserModel.findByGoogleSubject(subject);
+        }
+
+        let studentId = null;
+        if (user.role === 'student') {
+            const student = await StudentModel.findByUserId(user.user_id);
+            if (!student) return sendError(res, 'Complete your student profile before using Google Sign-In.', 409);
+            studentId = student.student_id;
+        }
+
+        const token = createSessionToken(user, studentId);
+        return sendSuccess(res, 'Google sign-in successful', {
+            user_id: user.user_id,
+            student_id: studentId,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar_url: user.avatar_url || profile.picture || null,
             token
         });
     } catch (error) {
@@ -290,6 +365,8 @@ const deleteAccount = async (req, res, next) => {
 module.exports = {
     register,
     login,
+    getGoogleConfig,
+    googleLogin,
     getProfile,
     verifyEmail,
     updateProfile,

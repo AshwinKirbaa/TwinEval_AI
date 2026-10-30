@@ -22,6 +22,18 @@ class UserModel {
         return rows[0] || null;
     }
 
+    static async findByGoogleSubject(subject) {
+        const sql = `SELECT * FROM Users WHERE google_subject = ? LIMIT 1`;
+        const [rows] = await pool.execute(sql, [subject]);
+        return rows[0] || null;
+    }
+
+    static async linkGoogleIdentity(id, subject) {
+        const sql = `UPDATE Users SET google_subject = ?, email_verified_at = COALESCE(email_verified_at, CURRENT_TIMESTAMP), verification_token_hash = NULL, verification_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
+        const [result] = await pool.execute(sql, [subject, id]);
+        return result.affectedRows > 0;
+    }
+
     /**
      * Find user by ID
      */

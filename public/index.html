@@ -120,6 +120,11 @@
           </button>
         </form>
 
+        <div class="social-login" id="googleLoginSection" hidden>
+          <div class="auth-divider"><span>OR</span></div>
+          <div id="googleSignInButton" class="google-signin-button"></div>
+        </div>
+
         <div class="auth-footer">
           Don't have an account? <a href="signup.html" class="auth-link">Create Account</a>
         </div>
@@ -129,8 +134,59 @@
 
   <!-- Global JavaScript Engine -->
   <script src="js/script.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
     let selectedRole = 'Student';
+
+    function finishAuthentication(data, providerName) {
+      const serverRole = data.role === 'teacher' ? 'Teacher' : 'Student';
+      if (serverRole !== selectedRole) {
+        TwinEvalApp.showToast('Wrong Portal', `This account is registered as a ${serverRole}. Redirecting you there instead.`, 'info');
+      }
+      TwinEvalApp.setToken(data.token);
+      TwinEvalApp.setUser({
+        user_id: data.user_id,
+        student_id: data.student_id,
+        name: data.name,
+        email: data.email,
+        role: serverRole,
+        avatar_url: data.avatar_url || null
+      });
+      TwinEvalApp.showToast('Authentication Successful', `Signed in with ${providerName}.`, 'success');
+      setTimeout(() => {
+        window.location.href = serverRole === 'Teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
+      }, 600);
+    }
+
+    async function handleGoogleCredential(response) {
+      try {
+        const res = await TwinEvalApp.apiFetch('/auth/google', {
+          method: 'POST',
+          body: JSON.stringify({ credential: response.credential, requested_role: selectedRole.toLowerCase() })
+        });
+        finishAuthentication(res.data, 'Google');
+      } catch (error) {
+        TwinEvalApp.showToast('Google Sign-In Failed', error.message || 'Could not sign in with Google.', 'danger');
+      }
+    }
+
+    async function initGoogleSignIn() {
+      try {
+        const config = await TwinEvalApp.apiFetch('/auth/google/config');
+        if (!config.data.enabled) return;
+        for (let attempt = 0; attempt < 50 && !window.google?.accounts?.id; attempt++) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        if (!window.google?.accounts?.id) throw new Error('Google Identity Services did not load.');
+        google.accounts.id.initialize({ client_id: config.data.client_id, callback: handleGoogleCredential });
+        document.getElementById('googleLoginSection').hidden = false;
+        google.accounts.id.renderButton(document.getElementById('googleSignInButton'), {
+          type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', width: 368
+        });
+      } catch (error) {
+        console.warn('Google Sign-In unavailable:', error.message);
+      }
+    }
 
     document.querySelectorAll('.role-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -176,31 +232,15 @@
           body: JSON.stringify({ email, password })
         });
 
-        const serverRole = res.data.role === 'teacher' ? 'Teacher' : 'Student';
-        if (serverRole !== selectedRole) {
-          TwinEvalApp.showToast('Wrong Portal', `This account is registered as a ${serverRole}. Redirecting you there instead.`, 'info');
-        }
-
-        TwinEvalApp.setToken(res.data.token);
-        TwinEvalApp.setUser({
-          user_id: res.data.user_id,
-          student_id: res.data.student_id,
-          name: res.data.name,
-          email: res.data.email,
-          role: serverRole
-        });
-
-        TwinEvalApp.showToast('Authentication Successful', `Welcome to TwinEval AI ${serverRole} Portal`, 'success');
-
-        setTimeout(() => {
-          window.location.href = serverRole === 'Teacher' ? 'teacher-dashboard.html' : 'student-dashboard.html';
-        }, 800);
+        finishAuthentication(res.data, 'your email and password');
       } catch (err) {
         TwinEvalApp.showToast('Login Failed', err.message || 'Invalid email or password.', 'danger');
         btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
     }
+
+    initGoogleSignIn();
   </script>
   <script src="js/redesign.js"></script>
 </body>

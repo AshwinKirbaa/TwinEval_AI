@@ -107,6 +107,11 @@ function runMigrations() {
             console.log(`🔧 Migrated database: added Users.${column}`);
         }
     }
+    if (!userColumns.includes('google_subject')) {
+        db.exec('ALTER TABLE Users ADD COLUMN google_subject TEXT');
+        console.log('🔧 Migrated database: added Users.google_subject');
+    }
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_subject ON Users(google_subject)');
     // Accounts created before verification was introduced remain usable.
     db.exec("UPDATE Users SET email_verified_at = COALESCE(email_verified_at, created_at) WHERE email_verified_at IS NULL AND verification_token_hash IS NULL");
 }

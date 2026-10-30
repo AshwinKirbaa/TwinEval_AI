@@ -14,12 +14,14 @@ CREATE TABLE IF NOT EXISTS Users (
     email_verified_at TEXT,
     verification_token_hash TEXT,
     verification_expires_at TEXT,
+    google_subject TEXT UNIQUE,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_email ON Users(email);
 CREATE INDEX IF NOT EXISTS idx_user_role ON Users(role);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_subject ON Users(google_subject);
 
 CREATE TABLE IF NOT EXISTS Student (
     student_id INTEGER PRIMARY KEY AUTOINCREMENT,

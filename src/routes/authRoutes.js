@@ -19,6 +19,9 @@ router.post('/register', validateRegistration, authController.register);
  */
 router.post('/login', validateLogin, authController.login);
 
+router.get('/google/config', authController.getGoogleConfig);
+router.post('/google', authController.googleLogin);
+
 /**
  * @route   GET /auth/verify-email?token=...
  * @desc    Activate an account from its one-time email link
