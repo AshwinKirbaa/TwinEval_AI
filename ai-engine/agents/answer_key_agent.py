@@ -116,9 +116,9 @@ def _is_objective_question(question_text: str, max_marks: float) -> bool:
 
 class AnswerKeyAgent:
 
-    def __init__(self, model: str = "qwen3:4b-instruct", gemini_model: str = "gemini-2.0-flash"):
+    def __init__(self, model: str = "qwen3:4b-instruct", gemini_model: str = None):
         self.model = model
-        self.gemini_model = gemini_model
+        self.gemini_model = gemini_model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
     def generate(self, question_text: str, topic: str = "", max_marks: float = 10.0) -> dict:
         """

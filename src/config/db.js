@@ -99,13 +99,16 @@ class PostgresConnection {
 
     async execute(sql, params = []) {
         let query = sql.trim().replace(/;$/, '');
+        const normalizedParams = (Array.isArray(params) ? params : []).map(value =>
+            typeof value === 'boolean' ? (value ? 1 : 0) : value
+        );
         const insert = query.match(/^INSERT\s+INTO\s+([A-Za-z_]+)/i);
         let insertedKey = null;
         if (insert && !/\bRETURNING\b/i.test(query)) {
             insertedKey = primaryKeys[insert[1].toLowerCase()];
             if (insertedKey) query += ` RETURNING ${insertedKey}`;
         }
-        const result = await this.client.query(postgresSql(query), params);
+        const result = await this.client.query(postgresSql(query), normalizedParams);
         if (/^SELECT\b|^WITH\b/i.test(query)) return [result.rows, []];
         return [{
             insertId: insertedKey && result.rows[0] ? Number(result.rows[0][insertedKey]) : 0,

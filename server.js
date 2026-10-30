@@ -80,10 +80,9 @@ app.use(globalErrorHandler);
 const PORT = Number(process.env.PORT || 5000);
 const HOST = process.env.HOST || '0.0.0.0';
 
-// Initialize SQLite database, then start the lightweight central Express server.
-// AI/Ollama is intentionally NOT started here: each client computer runs
-// its own local AI engine so the central server does not need GPU/CPU-heavy
-// model hosting.
+// Initialize the configured database (PostgreSQL in production, SQLite
+// locally), then start the API server. AI may run as a separate hosted
+// service in production or locally with Ollama during development.
 const startServer = async () => {
     await testConnection();
 
@@ -92,8 +91,8 @@ const startServer = async () => {
         console.log(`🚀 TwinEval AI Server Running on Port ${PORT}`);
         console.log(`🏠 Local: http://localhost:${PORT}`);
 
-        console.log(`🧠 AI: Local on each client computer (Ollama + Python) at http://127.0.0.1:8000`);
-        console.log(`🗄️ Database: ${process.env.DB_PATH || './database/twineval.db'}`);
+        console.log(`🧠 AI: ${process.env.AI_SERVICE_URL || 'local at http://127.0.0.1:8000'}`);
+        console.log(`🗄️ Database: ${process.env.DATABASE_URL ? 'PostgreSQL' : (process.env.DB_PATH || './database/twineval.db')}`);
         console.log(`====================================================`);
     });
 };
