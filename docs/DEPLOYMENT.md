@@ -10,7 +10,7 @@ TwinEval uses four hosted pieces:
 ## 1. Create Supabase resources
 
 1. Create a Supabase project.
-2. In **Storage**, create a public bucket named `twineval-uploads`.
+  2. In **Storage**, create a public bucket named `twineval-uploads`.
 3. Copy these values from Supabase project settings:
    - PostgreSQL connection string (use the session pooler string if direct IPv6 is unavailable)
    - Project URL
