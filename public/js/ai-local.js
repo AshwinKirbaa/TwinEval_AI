@@ -44,5 +44,24 @@ window.TwinEvalLocalAI = (() => {
         return request(`/jobs/${encodeURIComponent(jobId)}`);
     }
 
-    return { baseUrl: configuredUrl, request, health, startJob, getJob };
+    async function generateReportPdf(payload) {
+        let response;
+        try {
+            response = await fetch(`${configuredUrl}/generate-report-pdf`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (error) {
+            throw new Error(`Local AI engine is unavailable at ${configuredUrl}. Start the AI engine on this computer. (${error.message})`);
+        }
+        if (!response.ok) {
+            let message = `PDF generation failed (HTTP ${response.status}).`;
+            try { message = (await response.json()).message || message; } catch (_) { /* keep fallback */ }
+            throw new Error(message);
+        }
+        return response.blob();
+    }
+
+    return { baseUrl: configuredUrl, request, health, startJob, getJob, generateReportPdf };
 })();

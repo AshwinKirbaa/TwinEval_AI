@@ -120,8 +120,35 @@ const ResultsModule = {
       downloadBtn.disabled = true;
 
       try {
-        const response = await TwinEvalApp.apiFetch(`/submissions/${submissionId}/report`);
-        const blob = await response.blob();
+        const s = this.submission;
+        const questionResults = s.question_results || [];
+        const blob = await TwinEvalLocalAI.generateReportPdf({
+          student: {
+            name: s.student_name || '',
+            register_no: s.roll_no || 'N/A',
+            department: s.department || '',
+            semester: String(s.semester || ''),
+            subject: s.subject || ''
+          },
+          teacher: {
+            name: s.teacher_name || '',
+            subject: s.subject || '',
+            max_marks: Math.round(parseFloat(s.max_marks) || 0)
+          },
+          questions: questionResults.map((r, index) => ({
+            id: String(r.full_result?.question_id || r.question_id || index + 1),
+            text: r.question_text || '',
+            topic: '',
+            max_marks: parseFloat(r.question_max_marks || r.max_marks) || 0
+          })),
+          results: questionResults.map(r => ({
+            ...(r.full_result || {}),
+            question_text: r.question_text || r.full_result?.question_text || '',
+            marks: parseFloat(r.teacher_override_marks ?? r.marks) || 0,
+            max_marks: parseFloat(r.max_marks) || 0
+          })),
+          overall: s.overall_report || {}
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

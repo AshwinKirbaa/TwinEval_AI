@@ -89,6 +89,9 @@ const register = async (req, res, next) => {
             // "account already exists".
             if (googleIdentity && (!existingUser.google_subject || existingUser.google_subject === googleIdentity.subject)) {
                 await UserModel.linkGoogleIdentity(existingUser.user_id, googleIdentity.subject);
+                if (!existingUser.avatar_url && googleIdentity.profile?.picture) {
+                    await UserModel.updateAvatar(existingUser.user_id, googleIdentity.profile.picture);
+                }
                 let existingStudentId = null;
                 if (existingUser.role === 'student') {
                     let existingStudent = await StudentModel.findByUserId(existingUser.user_id);
@@ -166,6 +169,9 @@ const register = async (req, res, next) => {
 
         if (googleIdentity) {
             await UserModel.linkGoogleIdentity(userId, googleIdentity.subject);
+            if (googleIdentity.profile?.picture) {
+                await UserModel.updateAvatar(userId, googleIdentity.profile.picture);
+            }
             const user = await UserModel.findByGoogleSubject(googleIdentity.subject);
             const token = createSessionToken(user, studentId);
             return sendSuccess(res, 'Google account created and signed in successfully', {
@@ -298,6 +304,11 @@ const googleLogin = async (req, res, next) => {
             const student = await StudentModel.findByUserId(user.user_id);
             if (!student) return sendError(res, 'Complete your student profile before using Google Sign-In.', 409);
             studentId = student.student_id;
+        }
+
+        if (!user.avatar_url && profile?.picture) {
+            await UserModel.updateAvatar(user.user_id, profile.picture);
+            user.avatar_url = profile.picture;
         }
 
         const token = createSessionToken(user, studentId);
