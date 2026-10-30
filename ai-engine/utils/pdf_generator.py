@@ -6,6 +6,13 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 
 
+# Report paths must not depend on the process working directory.  The AI
+# server is normally launched from the repository root, while Flask resolves
+# relative send_file() paths from ai-engine/.  That mismatch caused reports to
+# be built in <repo>/output and then looked up in <repo>/ai-engine/output.
+OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "output"))
+
+
 def clean_txt(text):
     if not text:
         return ""
@@ -22,13 +29,10 @@ def generate_pdf(
     Generates AI Evaluation Report PDF from evaluation result dict.
     Returns the generated PDF file path.
     """
-    os.makedirs("output", exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     reg_no = getattr(student, "register_no", "Student")
-    pdf_path = os.path.join(
-        "output",
-        f"{reg_no}_Evaluation_Report.pdf"
-    )
+    pdf_path = os.path.join(OUTPUT_DIR, f"{reg_no}_Evaluation_Report.pdf")
 
     styles = getSampleStyleSheet()
     doc = SimpleDocTemplate(pdf_path)
@@ -150,10 +154,10 @@ def generate_full_report_pdf(student, teacher, questions, results, overall):
     generate_pdf(), which remains available for the original
     single-answer-key workflow.
     """
-    os.makedirs("output", exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     reg_no = getattr(student, "register_no", "Student")
-    pdf_path = os.path.join("output", f"{reg_no}_Full_Evaluation_Report.pdf")
+    pdf_path = os.path.join(OUTPUT_DIR, f"{reg_no}_Full_Evaluation_Report.pdf")
 
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="QuestionHeading", parent=styles["Heading2"], textColor=colors.HexColor("#1a3d7c")))

@@ -18,7 +18,14 @@ const client = axios.create({ baseURL: AI_SERVICE_URL, timeout: 10 * 60 * 1000 }
 
 function unwrapError(error, fallbackMessage) {
     if (error.response) {
-        const data = error.response.data;
+        let data = error.response.data;
+        // Requests for PDFs use responseType=arraybuffer, so even an error
+        // response containing JSON arrives as bytes. Decode it before trying
+        // to surface the AI service's message.
+        if (Buffer.isBuffer(data) || data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+            const text = Buffer.from(data).toString('utf8');
+            try { data = JSON.parse(text); } catch (e) { data = text; }
+        }
         // Normal case: the AI engine returned proper JSON with a message.
         if (data && typeof data === 'object' && data.message) {
             const err = new Error(data.message);
