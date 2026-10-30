@@ -55,7 +55,7 @@ class OllamaTimeoutError(RuntimeError):
     fallback paths already handle this like any other failure."""
 
 
-def chat(model, messages, options=None, timeout=None, retries=None):
+def chat(model, messages, options=None, timeout=None, retries=None, format=None):
     """
     Drop-in, timeout-bounded replacement for `ollama.chat(...)`.
 
@@ -76,7 +76,10 @@ def chat(model, messages, options=None, timeout=None, retries=None):
     last_err = None
     for attempt in range(retries + 1):
         try:
-            return client.chat(model=model, messages=messages, options=options or {})
+            kwargs = {"model": model, "messages": messages, "options": options or {}}
+            if format is not None:
+                kwargs["format"] = format
+            return client.chat(**kwargs)
         except Exception as e:
             last_err = e
             err_name = type(e).__name__.lower()

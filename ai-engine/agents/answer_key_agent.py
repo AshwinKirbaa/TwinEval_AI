@@ -116,7 +116,7 @@ def _is_objective_question(question_text: str, max_marks: float) -> bool:
 
 class AnswerKeyAgent:
 
-    def __init__(self, model: str = "gemma3:4b", gemini_model: str = "gemini-2.0-flash"):
+    def __init__(self, model: str = "qwen3:4b-instruct", gemini_model: str = "gemini-2.0-flash"):
         self.model = model
         self.gemini_model = gemini_model
 
@@ -144,15 +144,31 @@ class AnswerKeyAgent:
                 print(f"AnswerKeyAgent: Gemini generation failed ({e}), falling back to Ollama")
 
         try:
-            response = ollama_client.chat(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.2, "top_p": 0.9},
-            )
-            content = response["message"]["content"].strip()
-            parsed = self._parse_json(content)
-            if parsed:
-                return self._normalize(parsed, max_marks)
+            # JSON mode prevents the most common failure here: a long-form
+            # model wrapping/truncating its answer around the requested JSON.
+            # A 14-mark answer legitimately needs longer than the old global
+            # 90-second limit on CPU, so answer generation gets its own bound.
+            answer_timeout = float(os.environ.get("OLLAMA_ANSWER_KEY_TIMEOUT_SECONDS", "240"))
+            for attempt in range(2):
+                messages = [{"role": "user", "content": prompt}]
+                if attempt:
+                    messages.append({
+                        "role": "user",
+                        "content": "Your previous response was missing or invalid. Return one complete JSON object with a non-empty model_answer now."
+                    })
+                response = ollama_client.chat(
+                    model=self.model,
+                    messages=messages,
+                    options={"temperature": 0.1, "top_p": 0.9, "num_predict": 3072, "num_ctx": 8192},
+                    timeout=answer_timeout,
+                    retries=1,
+                    format="json",
+                )
+                content = response["message"]["content"].strip()
+                parsed = self._parse_json(content)
+                if parsed and str(parsed.get("model_answer", "")).strip():
+                    return self._normalize(parsed, max_marks)
+            raise ValueError("The local model returned incomplete JSON twice.")
         except Exception as e:
             err_msg = str(e).lower()
             if "not found" in err_msg or "404" in err_msg:
@@ -163,7 +179,12 @@ class AnswerKeyAgent:
                     print(f"AnswerKeyAgent: model pull failed: {pull_err}")
             print(f"AnswerKeyAgent generation failed, using fallback key: {e}")
 
-        return self._fallback(question_text, max_marks)
+        fallback = self._fallback(question_text, max_marks)
+        fallback["generation_error"] = (
+            f"The local model '{self.model}' could not generate this answer key. "
+            "Retry generation after checking Ollama."
+        )
+        return fallback
 
     @staticmethod
     def _build_objective_prompt(question_text: str, topic: str, max_marks: float) -> str:

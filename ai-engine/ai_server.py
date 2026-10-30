@@ -73,13 +73,14 @@ def handle_any_uncaught_exception(e):
     print("=" * 70)
     return _error(f"AI engine error: {e}", 500)
 
-OCR_MODEL = os.environ.get("AI_ENGINE_MODEL", "gemma3:4b")
+TEXT_MODEL = os.environ.get("AI_TEXT_MODEL", "qwen3:4b-instruct")
+VISION_MODEL = os.environ.get("AI_VISION_MODEL", "gemma3:4b")
 
 # Built once at process start (loads the sentence-transformer model etc)
 # and reused for every request -- mirrors the @st.cache_resource pattern
 # used in the Streamlit app, for the same reason: this is expensive to
 # rebuild per-request.
-_service = PaperEvaluationService(model=OCR_MODEL)
+_service = PaperEvaluationService(model=TEXT_MODEL)
 
 
 class _WerkzeugFileAdapter:
@@ -110,8 +111,15 @@ class _WerkzeugFileAdapter:
 
 @app.route("/health", methods=["GET"])
 def health():
-    ok, msg = check_ollama_ready(model=OCR_MODEL)
-    return jsonify({"success": True, "ollama_ready": ok, "message": msg})
+    text_ok, text_msg = check_ollama_ready(model=TEXT_MODEL)
+    vision_ok, vision_msg = check_ollama_ready(model=VISION_MODEL)
+    return jsonify({
+        "success": True,
+        "ollama_ready": text_ok and vision_ok,
+        "text_model": TEXT_MODEL,
+        "vision_model": VISION_MODEL,
+        "message": text_msg if not text_ok else vision_msg
+    })
 
 
 # -------------------------------------------------------------------
@@ -205,7 +213,7 @@ def create_generate_paper_job():
         filename_lower = file_storage.filename.lower()
         needs_possible_ocr = filename_lower.endswith((".pdf", ".png", ".jpg", ".jpeg"))
         if needs_possible_ocr:
-            ok, msg = check_ollama_ready(model=OCR_MODEL)
+            ok, msg = check_ollama_ready(model=VISION_MODEL)
             if not ok:
                 _set_job(job_id, done=True, error=msg)
                 return jsonify({"success": True, "job_id": job_id})
@@ -213,7 +221,7 @@ def create_generate_paper_job():
         _set_job(job_id, stage="extracting_text", message="Reading the uploaded question paper...")
         try:
             adapted = _WerkzeugFileAdapter(file_storage)
-            raw_text = extract_text(adapted, ocr_model=OCR_MODEL)
+            raw_text = extract_text(adapted, ocr_model=VISION_MODEL)
         except Exception as e:
             _set_job(job_id, done=True, error=f"Text extraction failed: {e}")
             return jsonify({"success": True, "job_id": job_id})
@@ -231,7 +239,7 @@ def create_generate_paper_job():
     # question 1 of N (which, before the ollama_client timeout fix,
     # could otherwise hang the whole job with no feedback at all).
     if not os.environ.get("GEMINI_API_KEY"):
-        ok, msg = check_ollama_ready(model=OCR_MODEL)
+        ok, msg = check_ollama_ready(model=TEXT_MODEL)
         if not ok:
             _set_job(job_id, done=True, error=msg)
             return jsonify({"success": True, "job_id": job_id})
@@ -325,7 +333,7 @@ def create_evaluate_submission_job():
     # worker discover Ollama is unreachable only after OCR has already
     # run (or, before the ollama_client timeout fix, potentially hang
     # indefinitely on the first evaluation call with zero feedback).
-    ok, msg = check_ollama_ready(model=OCR_MODEL)
+    ok, msg = check_ollama_ready(model=TEXT_MODEL)
     if not ok:
         _set_job(job_id, done=True, error=msg)
         return jsonify({"success": True, "job_id": job_id})
@@ -359,14 +367,14 @@ def create_evaluate_submission_job():
             needs_possible_ocr = filename_lower.endswith((".pdf", ".png", ".jpg", ".jpeg"))
 
             if needs_possible_ocr:
-                ok, msg = check_ollama_ready(model=OCR_MODEL)
+                ok, msg = check_ollama_ready(model=VISION_MODEL)
                 if not ok:
                     _set_job(job_id, done=True, error=msg)
                     return
 
             _set_job(job_id, stage="extracting_text", message="Reading your answer sheet (OCR)...")
             with open(temp_path, "rb") as saved_file:
-                raw_text = extract_text(saved_file, ocr_model=OCR_MODEL)
+                raw_text = extract_text(saved_file, ocr_model=VISION_MODEL)
 
             if not raw_text or not raw_text.strip():
                 _set_job(job_id, done=True, error="No text could be extracted from the uploaded answer sheet.")
@@ -415,13 +423,13 @@ def extract_text_route():
     filename_lower = file_storage.filename.lower()
     needs_possible_ocr = filename_lower.endswith((".pdf", ".png", ".jpg", ".jpeg"))
     if needs_possible_ocr:
-        ok, msg = check_ollama_ready(model=OCR_MODEL)
+        ok, msg = check_ollama_ready(model=VISION_MODEL)
         if not ok:
             return _error(msg, 503)
 
     try:
         adapted = _WerkzeugFileAdapter(file_storage)
-        text = extract_text(adapted, ocr_model=OCR_MODEL)
+        text = extract_text(adapted, ocr_model=VISION_MODEL)
         return jsonify({"success": True, "text": text})
     except Exception as e:
         return _error(f"Text extraction failed: {e}", 500)
@@ -450,7 +458,7 @@ def generate_answer_keys_route():
     if not question_dicts:
         return _error("questions is required and must be non-empty.")
 
-    ok, msg = check_ollama_ready(model=OCR_MODEL)
+    ok, msg = check_ollama_ready(model=TEXT_MODEL)
     if not ok:
         return _error(msg, 503)
 
@@ -493,7 +501,7 @@ def evaluate_route():
     if not question_dicts:
         return _error("questions is required.")
 
-    ok, msg = check_ollama_ready(model=OCR_MODEL)
+    ok, msg = check_ollama_ready(model=TEXT_MODEL)
     if not ok:
         return _error(msg, 503)
 
@@ -555,7 +563,8 @@ if __name__ == "__main__":
     port = int(os.environ.get("AI_SERVICE_PORT", "8000"))
     host = os.environ.get("AI_SERVICE_HOST", "127.0.0.1")
     print(f"AI Bridge Server starting on http://{host}:{port}")
-    print(f"Using Ollama model: {OCR_MODEL}")
+    print(f"Using text model: {TEXT_MODEL}")
+    print(f"Using vision/OCR model: {VISION_MODEL}")
     # threaded=True: without this, Werkzeug's dev server handles one
     # request at a time. A long-running background generation job
     # (spawned in its own thread, not blocked by this) is fine either

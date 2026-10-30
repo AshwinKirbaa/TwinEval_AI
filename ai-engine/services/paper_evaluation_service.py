@@ -35,7 +35,7 @@ _CALIBRATION_EXEMPLARS_PATH = Path(__file__).parent.parent / "dataset" / "calibr
 
 class PaperEvaluationService:
 
-    def __init__(self, model: str = "gemma3:4b"):
+    def __init__(self, model: str = "qwen3:4b-instruct"):
         self.model = model
         self.question_agent = QuestionAgent(model=model)
         self.answer_key_agent = AnswerKeyAgent(model=model)
@@ -79,6 +79,9 @@ class PaperEvaluationService:
             data = self.answer_key_agent.generate(
                 question.text, topic=question.topic, max_marks=question.max_marks
             )
+            if not str(data.get("model_answer", "")).strip():
+                detail = data.get("generation_error") or "No model answer was returned."
+                raise RuntimeError(f"Answer-key generation failed for question {i + 1}: {detail}")
             data["question_id"] = question.id
             answer_keys[question.id] = data
             if progress_callback:
