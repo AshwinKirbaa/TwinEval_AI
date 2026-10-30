@@ -14,12 +14,12 @@ const globalErrorHandler = (err, req, res, next) => {
     console.error('💥 Unhandled Error:', err);
 
     // Duplicate/unique constraint error
-    if (err.code === 'ER_DUP_ENTRY' || err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    if (err.code === 'ER_DUP_ENTRY' || err.code === 'SQLITE_CONSTRAINT_UNIQUE' || err.code === '23505') {
         return sendError(res, 'A record with this unique attribute (e.g. email) already exists.', 409);
     }
 
     // Foreign key constraint error
-    if (err.code === 'ER_NO_REFERENCED_ROW_2' || err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+    if (err.code === 'ER_NO_REFERENCED_ROW_2' || err.code === 'ER_ROW_IS_REFERENCED_2' || err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY' || err.code === '23503') {
         return sendError(res, 'Foreign key constraint violation. Referenced record does not exist or has dependents.', 400);
     }
 

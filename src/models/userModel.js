@@ -29,8 +29,11 @@ class UserModel {
     }
 
     static async linkGoogleIdentity(id, subject) {
-        const sql = `UPDATE Users SET google_subject = ?, email_verified_at = COALESCE(email_verified_at, CURRENT_TIMESTAMP), verification_token_hash = NULL, verification_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
-        const [result] = await pool.execute(sql, [subject, id]);
+        // Pass the timestamp as a value instead of mixing CURRENT_TIMESTAMP
+        // with the schema's portable TEXT timestamp column. PostgreSQL rejects
+        // COALESCE(text, timestamptz), while SQLite silently accepted it.
+        const sql = `UPDATE Users SET google_subject = ?, email_verified_at = COALESCE(email_verified_at, ?), verification_token_hash = NULL, verification_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?`;
+        const [result] = await pool.execute(sql, [subject, new Date().toISOString(), id]);
         return result.affectedRows > 0;
     }
 

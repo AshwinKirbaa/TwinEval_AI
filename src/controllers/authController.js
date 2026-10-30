@@ -82,6 +82,41 @@ const register = async (req, res, next) => {
         // Check if user already exists
         const existingUser = await UserModel.findByEmail(email);
         if (existingUser) {
+            // A previous Google registration may have inserted the account
+            // before a later linking step failed. The verified Google token
+            // proves ownership of this same Gmail, so safely finish linking
+            // and return a session instead of trapping the user forever on
+            // "account already exists".
+            if (googleIdentity && (!existingUser.google_subject || existingUser.google_subject === googleIdentity.subject)) {
+                await UserModel.linkGoogleIdentity(existingUser.user_id, googleIdentity.subject);
+                let existingStudentId = null;
+                if (existingUser.role === 'student') {
+                    let existingStudent = await StudentModel.findByUserId(existingUser.user_id);
+                    if (!existingStudent && roll_no && department && semester) {
+                        existingStudentId = await StudentModel.create({
+                            name: existingUser.name || name,
+                            email: existingUser.email,
+                            department,
+                            semester,
+                            roll_no,
+                            user_id: existingUser.user_id
+                        });
+                    } else {
+                        existingStudentId = existingStudent?.student_id || null;
+                    }
+                }
+                const linkedUser = await UserModel.findByGoogleSubject(googleIdentity.subject);
+                const token = createSessionToken(linkedUser, existingStudentId);
+                return sendSuccess(res, 'Google account linked and signed in successfully', {
+                    user_id: linkedUser.user_id,
+                    student_id: existingStudentId,
+                    name: linkedUser.name,
+                    email: linkedUser.email,
+                    role: linkedUser.role,
+                    avatar_url: linkedUser.avatar_url || googleIdentity.profile?.picture || null,
+                    token
+                });
+            }
             return sendError(res, 'User with this email already exists.', 400);
         }
 
