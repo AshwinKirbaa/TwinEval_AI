@@ -8,9 +8,11 @@ const StudentModule = {
   submissions: [],
   papers: [],
   searchActive: false,
+  searchQuery: '',
+  statusFilter: 'all',
   init() {
     this.loadDashboard();
-    this.initSearchFilter();
+    this.initDashboardFilters();
     this.initCalendar();
   },
 
@@ -24,7 +26,7 @@ const StudentModule = {
       this.papers = Array.isArray(paperRes.data) ? paperRes.data : [];
       this.renderStats();
       this.renderPerformance();
-      this.renderRecent();
+      this.applyDashboardFilters();
       this.renderProgress();
       this.renderPapers();
       this.markCalendarDates();
@@ -75,8 +77,8 @@ const StudentModule = {
     const el=document.getElementById('recentEvaluations'); if(!el) return;
     const rows = list || this.submissions.slice(0,5);
     if(!rows.length){
-      el.innerHTML = this.searchActive
-        ? '<div class="list-empty"><i class="fa-solid fa-magnifying-glass"></i><strong>No matches</strong><span>No evaluations match your search.</span></div>'
+      el.innerHTML = (this.searchActive || this.statusFilter !== 'all')
+        ? '<div class="list-empty"><i class="fa-solid fa-filter"></i><strong>No matches</strong><span>No evaluations match the selected filters.</span></div>'
         : '<div class="list-empty"><i class="fa-regular fa-file-lines"></i><strong>No evaluations yet</strong><span>Your completed evaluations will appear here.</span></div>';
       return;
     }
@@ -109,20 +111,40 @@ const StudentModule = {
     el.innerHTML=rows.map(p=>`<div class="paper-item"><span class="paper-badge"><i class="fa-solid fa-book-open"></i></span><div class="paper-copy"><strong>${this.escape(p.title||'Question paper')}</strong><small>${this.escape(p.subject||'')} · ${p.question_count||0} questions</small></div><a class="paper-action" href="upload-answer.html">Answer</a></div>`).join('');
   },
 
-  initSearchFilter() {
-    const input=document.getElementById('assignmentSearchInput'); if(!input) return;
-    input.addEventListener('input',e=>{
-      const q=e.target.value.toLowerCase().trim();
-      this.searchActive=!!q;
-      if(!q){
-        this.renderRecent();
-        this.renderPapers();
-        return;
-      }
-      const matchesSubmission=s=>[s.paper_title,s.subject,s.status].filter(Boolean).some(v=>String(v).toLowerCase().includes(q));
-      const matchesPaper=p=>[p.title,p.subject,p.topic].filter(Boolean).some(v=>String(v).toLowerCase().includes(q));
-      this.renderRecent(this.submissions.filter(matchesSubmission));
-      this.renderPapers(this.papers.filter(matchesPaper));
+  applyDashboardFilters() {
+    const q=this.searchQuery;
+    const matchesSubmission=s=>{
+      const status=String(s.status||'').toLowerCase();
+      const matchesStatus=this.statusFilter==='all'
+        || (this.statusFilter==='success' && ['evaluated','reviewed'].includes(status))
+        || (this.statusFilter==='failed' && status==='failed');
+      const matchesSearch=!q || [s.paper_title,s.subject,s.status]
+        .filter(Boolean)
+        .some(v=>String(v).toLowerCase().includes(q));
+      return matchesStatus && matchesSearch;
+    };
+    const matchesPaper=p=>!q || [p.title,p.subject,p.topic]
+      .filter(Boolean)
+      .some(v=>String(v).toLowerCase().includes(q));
+    let submissions=this.submissions.filter(matchesSubmission);
+    if(!this.searchActive && this.statusFilter==='all') submissions=submissions.slice(0,5);
+    let papers=this.papers.filter(matchesPaper);
+    if(!this.searchActive) papers=papers.slice(0,5);
+    this.renderRecent(submissions);
+    this.renderPapers(papers);
+  },
+
+  initDashboardFilters() {
+    const input=document.getElementById('assignmentSearchInput');
+    const select=document.getElementById('studentEvaluationStatusFilter');
+    input?.addEventListener('input',e=>{
+      this.searchQuery=e.target.value.toLowerCase().trim();
+      this.searchActive=!!this.searchQuery;
+      this.applyDashboardFilters();
+    });
+    select?.addEventListener('change',e=>{
+      this.statusFilter=e.target.value;
+      this.applyDashboardFilters();
     });
   },
 

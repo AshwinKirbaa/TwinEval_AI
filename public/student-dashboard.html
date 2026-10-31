@@ -96,7 +96,18 @@
 
       <section class="dashboard-grid-bottom">
         <article class="eduka-card activity-card">
-          <div class="card-topline"><div><h2>Recent activity</h2><p>Your latest answer-sheet evaluations</p></div><a href="results.html" class="text-link">View all</a></div>
+          <div class="card-topline">
+            <div><h2>Recent activity</h2><p>Your latest answer-sheet evaluations</p></div>
+            <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;justify-content:flex-end;">
+              <label for="studentEvaluationStatusFilter" style="font-size:.78rem;font-weight:600;color:var(--text-muted);">Status</label>
+              <select id="studentEvaluationStatusFilter" class="form-input" style="width:auto;min-width:145px;padding:.55rem 2rem .55rem .75rem;">
+                <option value="all">All</option>
+                <option value="success">Successful</option>
+                <option value="failed">Failed</option>
+              </select>
+              <a href="results.html" class="text-link">View all</a>
+            </div>
+          </div>
           <div id="recentEvaluations" class="activity-list"><div class="list-empty"><i class="fa-regular fa-file-lines"></i><strong>No evaluations yet</strong><span>Your completed evaluations will appear here.</span></div></div>
         </article>
         <article class="eduka-card progress-card">
