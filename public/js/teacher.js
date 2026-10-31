@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
 const TeacherModule = {
   allSubmissions: [],
   searchActive: false,
+  searchQuery: '',
+  statusFilter: 'all',
 
   init() {
     this.initRubricMatrixBuilder();
@@ -76,8 +78,8 @@ const TeacherModule = {
     const body = document.getElementById('teacherRecentSubmissionsBody');
     if (body) {
       this.allSubmissions = submissions;
-      this.renderSubmissionRows([...submissions].sort((a, b) => new Date(b.submitted_at || 0) - new Date(a.submitted_at || 0)).slice(0, 5));
-      this.initSubmissionSearch();
+      this.applySubmissionFilters();
+      this.initSubmissionControls();
     }
 
     if (document.getElementById('classPerformanceChart')) {
@@ -97,7 +99,8 @@ const TeacherModule = {
     const body = document.getElementById('teacherRecentSubmissionsBody');
     if (!body) return;
     if (!list.length) {
-      body.innerHTML = `<tr><td colspan="5" style="padding:1.25rem;text-align:center;color:var(--text-muted);">${this.searchActive ? 'No submissions match your search.' : 'No submissions yet.'}</td></tr>`;
+      const filtering = this.searchActive || this.statusFilter !== 'all';
+      body.innerHTML = `<tr><td colspan="5" style="padding:1.25rem;text-align:center;color:var(--text-muted);">${filtering ? 'No submissions match the selected filters.' : 'No submissions yet.'}</td></tr>`;
       return;
     }
     body.innerHTML = list.map(s => {
@@ -105,7 +108,7 @@ const TeacherModule = {
       const status = s.status === 'reviewed'
         ? `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Reviewed</span>`
         : s.status === 'evaluated'
-          ? `<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pending Review</span>`
+          ? `<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Needs Verification</span>`
           : s.status === 'failed'
             ? `<span class="badge badge-danger"><i class="fa-solid fa-circle-exclamation"></i> Failed</span>`
             : `<span class="badge"><i class="fa-solid fa-spinner"></i> Processing</span>`;
@@ -126,22 +129,43 @@ const TeacherModule = {
    * teacher has, not just those 5 already-rendered rows, or it would
    * silently fail to find the vast majority of their students.
    */
-  initSubmissionSearch() {
-    const input = document.getElementById('teacherSubmissionSearchInput');
-    if (!input || input.dataset.bound === '1') return;
-    input.dataset.bound = '1';
-    input.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      this.searchActive = !!q;
-      if (!q) {
-        this.renderSubmissionRows([...this.allSubmissions].sort((a, b) => new Date(b.submitted_at || 0) - new Date(a.submitted_at || 0)).slice(0, 5));
-        return;
-      }
-      const filtered = this.allSubmissions.filter(s =>
-        [s.student_name, s.roll_no, s.paper_subject, s.subject, s.paper_title].filter(Boolean).some(v => String(v).toLowerCase().includes(q))
-      );
-      this.renderSubmissionRows(filtered);
+  applySubmissionFilters() {
+    const query = this.searchQuery;
+    let rows = this.allSubmissions.filter(s => {
+      const matchesStatus = this.statusFilter === 'all' || String(s.status || '').toLowerCase() === this.statusFilter;
+      const matchesSearch = !query || [s.student_name, s.roll_no, s.paper_subject, s.subject, s.paper_title]
+        .filter(Boolean)
+        .some(value => String(value).toLowerCase().includes(query));
+      return matchesStatus && matchesSearch;
     });
+
+    rows = rows.sort((a, b) => new Date(b.submitted_at || 0) - new Date(a.submitted_at || 0));
+    // Keep the compact five-row dashboard view only when no filter/search is
+    // active. Once the teacher asks for a category, show every matching row.
+    if (!this.searchActive && this.statusFilter === 'all') rows = rows.slice(0, 5);
+    this.renderSubmissionRows(rows);
+  },
+
+  initSubmissionControls() {
+    const input = document.getElementById('teacherSubmissionSearchInput');
+    const status = document.getElementById('teacherSubmissionStatusFilter');
+
+    if (input && input.dataset.bound !== '1') {
+      input.dataset.bound = '1';
+      input.addEventListener('input', (event) => {
+        this.searchQuery = event.target.value.toLowerCase().trim();
+        this.searchActive = !!this.searchQuery;
+        this.applySubmissionFilters();
+      });
+    }
+
+    if (status && status.dataset.bound !== '1') {
+      status.dataset.bound = '1';
+      status.addEventListener('change', (event) => {
+        this.statusFilter = event.target.value;
+        this.applySubmissionFilters();
+      });
+    }
   },
 
   async renderAnalyticsData(submissions) {

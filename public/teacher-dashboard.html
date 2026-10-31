@@ -153,6 +153,16 @@
               <a href="teacher-review.html" class="btn btn-sm btn-ghost">Workspace <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;">
+              <label for="teacherSubmissionStatusFilter" style="font-size:.8rem;font-weight:600;color:var(--text-muted);">Filter by teacher status</label>
+              <select id="teacherSubmissionStatusFilter" class="form-input" style="width:auto;min-width:190px;padding:.6rem 2.25rem .6rem .8rem;">
+                <option value="all">All submissions</option>
+                <option value="evaluated">Needs Verification</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+
             <div style="overflow-x: auto;">
               <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead>
