@@ -371,6 +371,12 @@ tbody tr:hover td { background:#fbfbfd!important; }
 .eduka-stat div span { display:block; margin-top:5px; font-size:10px; color:#9897a0; }
 
 .activity-list { margin-top:14px; }
+.activity-card-topline { align-items:flex-start; }
+.activity-filter-controls { display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; flex:none; }
+.activity-filter-field { display:flex; align-items:center; gap:8px; }
+.activity-filter-field label { color:var(--eduka-muted); font-size:10px; font-weight:600; white-space:nowrap; }
+.activity-filter-field select.form-input { width:142px!important; min-width:142px; min-height:36px; height:36px; padding:6px 30px 6px 11px!important; font-size:11px; border-radius:9px!important; }
+.activity-filter-controls .text-link { display:inline-flex; align-items:center; height:36px; white-space:nowrap; }
 .activity-item { display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid #f1f0f2; }
 .activity-item:last-child { border-bottom:0; }
 .activity-icon { width:38px; height:38px; border-radius:11px; display:grid; place-items:center; background:var(--eduka-coral-soft); color:var(--eduka-coral); flex:none; }
@@ -450,6 +456,14 @@ tbody tr:hover td { background:#fbfbfd!important; }
   .eduka-page .user-info { display:none; }.eduka-page .user-profile-pill { padding-right:7px!important; }
   .page-heading-row { align-items:flex-start; flex-direction:column; }.page-heading-row .btn { width:100%; justify-content:center; }
   .upload-side { grid-template-columns:1fr; }.evaluate-card { flex-direction:column; align-items:flex-start; }.evaluate-card .btn { width:100%; justify-content:center; }
+  .activity-card-topline { align-items:flex-start; gap:14px; }
+  .activity-filter-controls { align-items:flex-end; gap:9px; }
+  .activity-filter-field { align-items:flex-start; flex-direction:column; gap:4px; }
+  .activity-filter-field select.form-input { width:126px!important; min-width:126px; }
+}
+@media (max-width:520px) {
+  .activity-card-topline { flex-direction:column; }
+  .activity-filter-controls { width:100%; justify-content:space-between; align-items:flex-end; }
 }
 
 /* Apply the same reference shell to legacy pages too. */
