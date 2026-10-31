@@ -3,30 +3,149 @@ document.addEventListener('DOMContentLoaded', () => FeedbackModule.init());
 
 const FeedbackModule = {
   submission: null,
+  submissions: [],
+  currentSubmissionId: null,
 
   async init() {
     const workspace = document.getElementById('feedbackWorkspace');
     if (!workspace) return;
 
+    window.addEventListener('popstate', () => {
+      const id = new URLSearchParams(window.location.search).get('submission_id');
+      if (id && String(id) !== String(this.currentSubmissionId)) {
+        this.loadSubmission(id);
+      }
+    });
+
     try {
-      let submissionId = new URLSearchParams(window.location.search).get('submission_id');
-      if (!submissionId) {
-        const listResponse = await TwinEvalApp.apiFetch('/submissions');
-        const submissions = Array.isArray(listResponse.data) ? listResponse.data : [];
-        const selected = submissions.find(s => String(s.status).toLowerCase() === 'reviewed')
-          || submissions.find(s => String(s.status).toLowerCase() === 'evaluated');
-        if (!selected) return;
-        submissionId = selected.submission_id;
-        history.replaceState(null, '', `feedback.html?submission_id=${encodeURIComponent(submissionId)}`);
+      const listResponse = await TwinEvalApp.apiFetch('/submissions');
+      const allSubmissions = Array.isArray(listResponse.data) ? listResponse.data : [];
+
+      // Filter for completed submissions (teacher reviewed or AI evaluated)
+      this.submissions = allSubmissions.filter(s => {
+        const st = String(s.status || '').toLowerCase();
+        return st === 'reviewed' || st === 'evaluated';
+      });
+
+      if (!this.submissions.length) {
+        return;
       }
 
-      const response = await TwinEvalApp.apiFetch(`/submissions/${encodeURIComponent(submissionId)}`);
-      this.submission = response.data;
-      this.render(workspace, this.submission);
-      this.bindTabs();
+      let submissionId = new URLSearchParams(window.location.search).get('submission_id');
+      const exists = this.submissions.find(s => String(s.submission_id) === String(submissionId));
+      if (!exists) {
+        // Prefer teacher-reviewed (verified) answer script first, then latest evaluated
+        const preferred = this.submissions.find(s => String(s.status).toLowerCase() === 'reviewed') || this.submissions[0];
+        submissionId = preferred.submission_id;
+        const url = new URL(window.location.href);
+        url.searchParams.set('submission_id', submissionId);
+        window.history.replaceState(null, '', url.toString());
+      }
+
+      await this.loadSubmission(submissionId);
     } catch (error) {
       TwinEvalApp.showToast('Could Not Load Feedback', error.message || 'Please try again.', 'danger');
     }
+  },
+
+  async loadSubmission(submissionId) {
+    const workspace = document.getElementById('feedbackWorkspace');
+    if (!workspace) return;
+    try {
+      const response = await TwinEvalApp.apiFetch(`/submissions/${encodeURIComponent(submissionId)}`);
+      this.submission = response.data;
+      this.currentSubmissionId = submissionId;
+      this.render(workspace, this.submission);
+      this.bindTabs();
+      this.bindSelector();
+    } catch (error) {
+      TwinEvalApp.showToast('Could Not Load Submission', error.message || 'Please try again.', 'danger');
+    }
+  },
+
+  buildOptionsHtml(submissions, currentId) {
+    const reviewed = submissions.filter(s => String(s.status || '').toLowerCase() === 'reviewed');
+    const evaluated = submissions.filter(s => String(s.status || '').toLowerCase() !== 'reviewed');
+
+    const renderOption = (s) => {
+      const isReviewed = String(s.status || '').toLowerCase() === 'reviewed';
+      const marks = s.teacher_override_marks ?? s.total_marks ?? 0;
+      const maxMarks = s.max_marks || 0;
+      const date = this.formatDate(s.evaluated_at || s.submitted_at);
+      const title = s.paper_title || 'Answer Script';
+      const subject = s.subject ? ` (${s.subject})` : '';
+      const statusLabel = isReviewed ? 'Teacher Reviewed' : 'AI Evaluated';
+      const selected = String(s.submission_id) === String(currentId) ? 'selected' : '';
+      return `<option value="${this.escape(s.submission_id)}" ${selected}>${this.escape(title)}${this.escape(subject)} — ${marks}/${maxMarks} marks · ${statusLabel}${date ? ' · ' + date : ''}</option>`;
+    };
+
+    if (reviewed.length && evaluated.length) {
+      return `
+        <optgroup label="Teacher Verified Answer Scripts">
+          ${reviewed.map(renderOption).join('')}
+        </optgroup>
+        <optgroup label="AI Evaluated Answer Scripts">
+          ${evaluated.map(renderOption).join('')}
+        </optgroup>
+      `;
+    }
+
+    if (reviewed.length) {
+      return `
+        <optgroup label="Teacher Verified Answer Scripts">
+          ${reviewed.map(renderOption).join('')}
+        </optgroup>
+      `;
+    }
+
+    return submissions.map(renderOption).join('');
+  },
+
+  buildSelectorHtml(currentId) {
+    if (!this.submissions || !this.submissions.length) return '';
+
+    const reviewedCount = this.submissions.filter(s => String(s.status || '').toLowerCase() === 'reviewed').length;
+    const optionsHtml = this.buildOptionsHtml(this.submissions, currentId);
+
+    return `
+      <div class="glass-card padding-md" style="display:flex;align-items:center;justify-content:space-between;gap:1.25rem;flex-wrap:wrap;border-radius:16px;">
+        <div style="display:flex;align-items:center;gap:0.85rem;flex:1;min-width:280px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,112,84,0.12);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;">
+            <i class="fa-solid fa-file-circle-check"></i>
+          </div>
+          <div style="flex:1;">
+            <label for="feedbackSubmissionSelect" style="display:block;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:0.35rem;">
+              Select Teacher Verified Answer Script
+            </label>
+            <select id="feedbackSubmissionSelect" class="form-input" style="width:100%;font-weight:600;font-size:0.9rem;padding:0.5rem 0.75rem;border-radius:10px;cursor:pointer;appearance:auto;background:var(--bg-secondary);border:1px solid var(--border-subtle);">
+              ${optionsHtml}
+            </select>
+          </div>
+        </div>
+        ${reviewedCount > 0 ? `
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span class="badge badge-success" style="padding:0.45rem 0.8rem;font-size:0.8rem;">
+              <i class="fa-solid fa-check-double"></i> ${reviewedCount} Verified Script${reviewedCount === 1 ? '' : 's'} Available
+            </span>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  },
+
+  bindSelector() {
+    const select = document.getElementById('feedbackSubmissionSelect');
+    if (!select) return;
+    select.addEventListener('change', async (e) => {
+      const selectedId = e.target.value;
+      if (!selectedId || selectedId === String(this.currentSubmissionId)) return;
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('submission_id', selectedId);
+      window.history.pushState(null, '', url.toString());
+
+      await this.loadSubmission(selectedId);
+    });
   },
 
   render(workspace, s) {
@@ -43,6 +162,8 @@ const FeedbackModule = {
         <div><h1 style="font-size:1.65rem;font-weight:800;margin-bottom:.35rem;">Question Feedback Workspace</h1><p style="color:var(--text-muted);font-size:.9rem;">AI analysis and the teacher's final review for this answer script.</p></div>
         <a href="results.html?submission_id=${encodeURIComponent(s.submission_id)}" class="btn btn-outline btn-md"><i class="fa-solid fa-arrow-left"></i> Back to Score Summary</a>
       </div>
+
+      ${this.buildSelectorHtml(s.submission_id)}
 
       <div class="glass-card padding-lg">
         <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;">
@@ -109,6 +230,12 @@ const FeedbackModule = {
       });
       document.querySelectorAll('[data-feedback-pane]').forEach(pane => { pane.style.display = pane.dataset.feedbackPane === index ? 'block' : 'none'; });
     }));
+  },
+
+  formatDate(val) {
+    if (!val) return '';
+    const d = new Date(val);
+    return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   },
 
   escape(value) {
