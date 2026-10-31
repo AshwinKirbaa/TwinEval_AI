@@ -43,6 +43,11 @@ ollama pull %AI_TEXT_MODEL%
 if errorlevel 1 goto :error
 
 echo.
+echo Ensuring the vision/OCR model is installed...
+ollama pull %AI_VISION_MODEL%
+if errorlevel 1 goto :error
+
+echo.
 echo Starting local AI engine on http://127.0.0.1:8000 ...
 call .venv\Scripts\python.exe ai-engine\ai_server.py
 exit /b %errorlevel%
