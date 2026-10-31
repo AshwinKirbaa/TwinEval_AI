@@ -146,9 +146,23 @@ const TeacherModule = {
 
   async renderAnalyticsData(submissions) {
     const evaluated = submissions.filter(s => s.status === 'evaluated' || s.status === 'reviewed');
-    const mean = evaluated.length ? evaluated.reduce((sum, s) => sum + (parseFloat(s.percentage) || 0), 0) / evaluated.length : null;
-    const topCount = evaluated.filter(s => (parseFloat(s.percentage) || 0) >= 90).length;
-    const consensus = evaluated.length ? (evaluated.filter(s => s.teacher_override_marks == null).length / evaluated.length) * 100 : null;
+    const finalPercentage = s => {
+      const max = parseFloat(s.max_marks) || 0;
+      const marks = s.teacher_override_marks != null ? parseFloat(s.teacher_override_marks) : parseFloat(s.total_marks);
+      return max ? Math.max(0, Math.min(100, (marks || 0) / max * 100)) : (parseFloat(s.percentage) || 0);
+    };
+    const finalGrade = percentage => percentage >= 90 ? 'A+' : percentage >= 80 ? 'A' : percentage >= 70 ? 'B+' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : percentage >= 40 ? 'D' : 'F';
+    const finalScores = evaluated.map(finalPercentage);
+    const mean = finalScores.length ? finalScores.reduce((sum, score) => sum + score, 0) / finalScores.length : null;
+    const topCount = finalScores.filter(score => score >= 90).length;
+    const reviewed = evaluated.filter(s => s.status === 'reviewed');
+    const agreementValues = reviewed.map(s => {
+      const max = parseFloat(s.max_marks) || 1;
+      const ai = parseFloat(s.total_marks) || 0;
+      const teacher = s.teacher_override_marks != null ? parseFloat(s.teacher_override_marks) : ai;
+      return Math.max(0, 100 - Math.abs(teacher - ai) / max * 100);
+    });
+    const consensus = agreementValues.length ? agreementValues.reduce((sum, value) => sum + value, 0) / agreementValues.length : null;
     const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
     setText('analyticsMeanValue', mean == null ? '--' : `${mean.toFixed(1)}%`);
     setText('analyticsConsensusValue', consensus == null ? '--' : `${consensus.toFixed(1)}%`);
@@ -158,25 +172,43 @@ const TeacherModule = {
     for (const s of evaluated) {
       try {
         const res = await TwinEvalApp.apiFetch(`/submissions/${s.submission_id}`);
-        (res.data.question_results || []).forEach(q => details.push({
-          paper: s.paper_title || s.subject || 'Paper',
-          text: q.question_text || 'Question',
-          percentage: parseFloat(q.percentage) || 0,
-          full: q.full_result || {}
-        }));
+        (res.data.question_results || []).forEach(q => {
+          const maxMarks = parseFloat(q.max_marks) || 0;
+          const finalMarks = q.teacher_override_marks != null ? parseFloat(q.teacher_override_marks) : parseFloat(q.marks);
+          const questionPercentage = maxMarks ? Math.max(0, Math.min(100, (finalMarks || 0) / maxMarks * 100)) : (parseFloat(q.percentage) || 0);
+          details.push({
+            key: String(q.question_id || q.question_text || 'Question').trim().toLowerCase(),
+            paper: s.paper_title || s.subject || 'Paper',
+            text: q.question_text || 'Question',
+            percentage: questionPercentage,
+            full: q.full_result || {}
+          });
+        });
       } catch (e) { /* keep analytics usable even if one detail request fails */ }
     }
 
     if (details.length) {
-      const hardest = [...details].sort((a, b) => a.percentage - b.percentage)[0];
+      const grouped = new Map();
+      details.forEach(row => {
+        const current = grouped.get(row.key) || { text: row.text, total: 0, count: 0 };
+        current.total += row.percentage;
+        current.count += 1;
+        grouped.set(row.key, current);
+      });
+      const hardest = [...grouped.values()]
+        .map(row => ({ ...row, percentage: row.count ? row.total / row.count : 0 }))
+        .sort((a, b) => a.percentage - b.percentage)[0];
       setText('analyticsHardestValue', hardest.text.length > 16 ? `${hardest.text.slice(0,16)}…` : hardest.text);
-      setText('analyticsHardestContext', `Lowest average observed score: ${hardest.percentage.toFixed(1)}%`);
+      setText('analyticsHardestContext', `Class average: ${hardest.percentage.toFixed(1)}% across ${hardest.count} response${hardest.count === 1 ? '' : 's'}`);
     }
 
     if (document.getElementById('gradeDistributionChart')) {
       const grades = ['A+', 'A', 'B+', 'B', 'C', 'D', 'F'];
-      const counts = grades.map(g => evaluated.filter(s => s.grade === g).length);
-      TwinEvalApp.Charts.createBarChart('gradeDistributionChart', grades, counts, '#06b6d4');
+      const counts = grades.map(g => finalScores.filter(score => finalGrade(score) === g).length);
+      TwinEvalApp.Charts.createBarChart('gradeDistributionChart', grades, counts, '#06b6d4', {
+        valueSuffix: '',
+        maxValue: Math.max(1, ...counts)
+      });
     }
 
     if (document.getElementById('classBloomRadar')) {
@@ -193,6 +225,24 @@ const TeacherModule = {
       } else {
         document.getElementById('classBloomRadar').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);">No Bloom data yet.</div>';
       }
+    }
+
+    const exportButton = document.getElementById('exportTeacherAnalyticsBtn');
+    if (exportButton && exportButton.dataset.bound !== '1') {
+      exportButton.dataset.bound = '1';
+      exportButton.addEventListener('click', () => {
+        const header = ['Student', 'Roll Number', 'Paper', 'Status', 'Final Marks', 'Maximum Marks', 'Final Percentage', 'Final Grade'];
+        const rows = evaluated.map(s => {
+          const percentage = finalPercentage(s);
+          return [s.student_name, s.roll_no, s.paper_title || s.subject, s.status, s.teacher_override_marks ?? s.total_marks, s.max_marks, percentage.toFixed(2), finalGrade(percentage)];
+        });
+        const csv = [header, ...rows].map(row => row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\r\n');
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        link.download = 'TwinEval_Class_Analytics.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
     }
   },
 

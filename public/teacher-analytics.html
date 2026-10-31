@@ -90,7 +90,7 @@
               <h1 style="font-size: 1.65rem; font-weight: 800; margin-bottom: 0.35rem; letter-spacing: -0.02em;">Class Performance Analytics</h1>
               <p style="color: var(--text-muted); font-size: 0.9rem;">Class-wide metrics, hardest questions, and cognitive Bloom level averages.</p>
             </div>
-            <button type="button" class="btn btn-primary btn-md" onclick="TwinEvalApp.showToast('Exporting Analytics', 'Downloading class performance report CSV...', 'info');">
+            <button type="button" class="btn btn-primary btn-md" id="exportTeacherAnalyticsBtn">
               <i class="fa-solid fa-file-export"></i> Export Report (CSV)
             </button>
           </div>
@@ -102,7 +102,7 @@
               <div>
                 <div class="stat-value" id="analyticsMeanValue">--</div>
                 <div class="stat-label">Class Mean Score</div>
-                <div class="stat-trend text-primary">Based on evaluated submissions</div>
+                <div class="stat-trend text-primary">Uses final teacher-reviewed marks</div>
               </div>
             </div>
 
@@ -110,8 +110,8 @@
               <div class="stat-icon success"><i class="fa-solid fa-circle-check"></i></div>
               <div>
                 <div class="stat-value" id="analyticsConsensusValue">--</div>
-                <div class="stat-label">AI Consensus Rate</div>
-                <div class="stat-trend text-success">Evaluations not teacher-overridden</div>
+                <div class="stat-label">AI–Teacher Agreement</div>
+                <div class="stat-trend text-success">Score similarity after teacher review</div>
               </div>
             </div>
 
@@ -119,8 +119,8 @@
               <div class="stat-icon success"><i class="fa-solid fa-award"></i></div>
               <div>
                 <div class="stat-value" id="analyticsTopCountValue">0</div>
-                <div class="stat-label">Grade O (Outstanding)</div>
-                <div class="stat-trend text-success">Evaluated submissions &gt;= 90%</div>
+                <div class="stat-label">Outstanding Scores</div>
+                <div class="stat-trend text-success">Final scores &gt;= 90%</div>
               </div>
             </div>
 

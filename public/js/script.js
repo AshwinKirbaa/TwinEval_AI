@@ -500,11 +500,12 @@ const TwinEvalApp = {
      7. PURE VANILLA SVG CHART GENERATOR ENGINE
      ========================================== */
   Charts: {
-    createBarChart(containerId, labels, values, color = '#2563eb') {
+    createBarChart(containerId, labels, values, color = '#2563eb', options = {}) {
       const container = document.getElementById(containerId);
       if (!container) return;
 
-      const maxVal = Math.max(...values, 100);
+      const maxVal = options.maxValue ?? Math.max(...values, 100);
+      const valueSuffix = options.valueSuffix ?? '%';
       const svgHeight = 220;
       const containerWidth = container.clientWidth || 400;
       const barWidth = Math.min(42, Math.floor((containerWidth - 60) / labels.length - 16));
@@ -522,7 +523,7 @@ const TwinEvalApp = {
               <animate attributeName="height" from="0" to="${barHeight}" dur="0.8s" fill="freeze" calcMode="spline" keySplines="0.16 1 0.3 1"/>
               <animate attributeName="y" from="${svgHeight - 35}" to="${y}" dur="0.8s" fill="freeze" calcMode="spline" keySplines="0.16 1 0.3 1"/>
             </rect>
-            <text x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--text-main)">${val}%</text>
+            <text x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--text-main)">${val}${valueSuffix}</text>
             <text x="${x + barWidth / 2}" y="${svgHeight - 12}" text-anchor="middle" font-size="11" fill="var(--text-muted)">${label}</text>
           </g>
         `;
