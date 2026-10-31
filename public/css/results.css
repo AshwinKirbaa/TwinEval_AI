@@ -175,3 +175,57 @@
 .question-details-body.open {
   display: block;
 }
+/* Teacher-verified result selector */
+.verified-results-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.verified-results-picker-copy {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  min-width: 250px;
+}
+
+.verified-results-picker-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--success);
+  background: var(--success-light);
+}
+
+.verified-results-picker label {
+  display: block;
+  color: var(--text-main);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.verified-results-picker p {
+  margin: .2rem 0 0;
+  color: var(--text-muted);
+  font-size: .72rem;
+}
+
+.verified-results-picker select.form-input {
+  width: min(100%, 480px) !important;
+  flex: 1;
+}
+
+@media (max-width: 720px) {
+  .verified-results-picker {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .verified-results-picker select.form-input {
+    width: 100% !important;
+  }
+}
